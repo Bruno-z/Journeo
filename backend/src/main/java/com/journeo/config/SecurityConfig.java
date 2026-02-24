@@ -3,6 +3,8 @@ package com.journeo.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -10,10 +12,17 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
-            .csrf().disable() // désactive CSRF pour simplifier le test
-            .authorizeHttpRequests()
-                // autoriser Swagger et OpenAPI
+            // API REST → pas de session
+            .csrf(csrf -> csrf.disable())
+
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+
+            .authorizeHttpRequests(auth -> auth
+                // Swagger + endpoint public
                 .requestMatchers(
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
@@ -21,8 +30,10 @@ public class SecurityConfig {
                     "/api/users/ping"
                 ).permitAll()
                 .anyRequest().authenticated()
-            .and()
-            .formLogin(); // garde le login form pour les autres endpoints
+            )
+
+            // Désactive login form et basic auth
+            .httpBasic(Customizer.withDefaults());
 
         return http.build();
     }

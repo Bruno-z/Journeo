@@ -1,0 +1,26 @@
+# IDE / éditeur
+.vscode/
+*.iml
+/.idea
+
+# Build / fichiers compilés
+/backend/target/
+/frontend/node_modules/
+
+# Logs
+*.log
+
+# Docker
+docker-compose.override.yml
+
+# Secrets
+.env
+
+# Fichiers temporaires Claude
+tmpclaude-*-cwd
+
+# Système
+.DS_Store
+
+# Windows reserved files
+# nul
