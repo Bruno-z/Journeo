@@ -93,6 +93,7 @@ public class GuideControllerTest {
 
         @Test
         @DisplayName("Should return all guides successfully")
+        @WithMockUser(roles = "USER")
         void shouldReturnAllGuides() throws Exception {
             mockMvc.perform(get("/api/guides"))
                 .andExpect(status().isOk())
@@ -107,6 +108,7 @@ public class GuideControllerTest {
 
         @Test
         @DisplayName("Should return empty list when no guides exist")
+        @WithMockUser(roles = "USER")
         void shouldReturnEmptyList() throws Exception {
             guideRepository.deleteAll();
 
@@ -118,6 +120,7 @@ public class GuideControllerTest {
 
         @Test
         @DisplayName("Should return multiple guides")
+        @WithMockUser(roles = "USER")
         void shouldReturnMultipleGuides() throws Exception {
             Guide guide2 = guideRepository.save(new Guide(
                 "Lyon Gastronomy",
@@ -135,11 +138,10 @@ public class GuideControllerTest {
         }
 
         @Test
-        @DisplayName("Should be publicly accessible (no authentication required)")
-        void shouldBePubliclyAccessible() throws Exception {
-            mockMvc.perform(get("/api/guides")
-                .with(csrf()))
-                .andExpect(status().isOk());
+        @DisplayName("Should return 401 when not authenticated")
+        void shouldReturn401WhenNotAuthenticated() throws Exception {
+            mockMvc.perform(get("/api/guides"))
+                .andExpect(status().isUnauthorized());
         }
     }
 
@@ -149,6 +151,7 @@ public class GuideControllerTest {
 
         @Test
         @DisplayName("Should return guide when found")
+        @WithMockUser(roles = "USER")
         void shouldReturnGuideWhenFound() throws Exception {
             mockMvc.perform(get("/api/guides/{id}", testGuide.getId()))
                 .andExpect(status().isOk())
@@ -160,17 +163,17 @@ public class GuideControllerTest {
 
         @Test
         @DisplayName("Should return 404 when guide not found")
+        @WithMockUser(roles = "USER")
         void shouldReturn404WhenNotFound() throws Exception {
             mockMvc.perform(get("/api/guides/9999"))
                 .andExpect(status().isNotFound());
         }
 
         @Test
-        @DisplayName("Should be publicly accessible")
-        void shouldBePubliclyAccessible() throws Exception {
-            mockMvc.perform(get("/api/guides/{id}", testGuide.getId())
-                .with(csrf()))
-                .andExpect(status().isOk());
+        @DisplayName("Should return 401 when not authenticated")
+        void shouldReturn401WhenNotAuthenticated() throws Exception {
+            mockMvc.perform(get("/api/guides/{id}", testGuide.getId()))
+                .andExpect(status().isUnauthorized());
         }
     }
 
