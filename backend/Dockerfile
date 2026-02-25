@@ -1,27 +1,15 @@
-# Utilise une image Java officielle
-FROM eclipse-temurin:25-jdk-jammy
+# Étape 1 : build Maven + JDK 17
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 
-# Définit le répertoire de travail
 WORKDIR /app
-
-# Copie le pom.xml et télécharge les dépendances Maven
-COPY pom.xml .
-RUN apt-get update && apt-get install -y maven
-RUN mvn dependency:go-offline
-
-# Copie tout le code
+COPY pom.xml ./
 COPY src ./src
+RUN mvn clean compile package -DskipTests --fail-at-end
 
-# Compile et package l'application
-RUN mvn clean package -DskipTests
+# Étape 2 : runtime JDK 17
+FROM eclipse-temurin:17-jdk
 
-# Expose le port Spring Boot
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-
-# Attendre que la DB soit prête avant de démarrer
-# Télécharge wait-for-it.sh
-ADD https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh /wait-for-it.sh
-RUN chmod +x /wait-for-it.sh
-
-# Commande de lancement avec attente sur la DB
-CMD ["/wait-for-it.sh", "db:5432", "--", "java", "-jar", "target/backend-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java","-jar","app.jar"]
