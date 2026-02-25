@@ -12,6 +12,12 @@ services:
       - "5432:5432"  # Expose le port PostgreSQL sur l'hôte
     volumes:
       - pgdata:/var/lib/postgresql/data  # Persistance des données
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d journeo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   backend:
     build: ./backend  # Build l'image Docker depuis le dossier backend
@@ -25,7 +31,8 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update  # Hibernate crée/maj les tables automatiquement
       SPRING_PROFILES_ACTIVE: dev  # Profil Spring actif
     depends_on:
-      - db  # Le backend attend que la DB soit prête
+      db:
+        condition: service_healthy  # Le backend attend que PostgreSQL soit réellement prêt
 
   # Pour le moment, on commente le frontend car il n'y a pas encore d'application Angular
   # frontend:
