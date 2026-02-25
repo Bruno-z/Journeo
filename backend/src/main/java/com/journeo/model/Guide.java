@@ -5,8 +5,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "guides")
 public class Guide {
+
+    public enum Mobilite { VOITURE, VELO, A_PIED, MOTO }
+    public enum Saison { ETE, PRINTEMPS, AUTOMNE, HIVER }
+    public enum PublicCible { FAMILLE, SEUL, EN_GROUPE, ENTRE_AMIS }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,27 +25,32 @@ public class Guide {
     private int jours;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Mobilite mobilite;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Saison saison;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "pour_qui", nullable = false)
     private PublicCible pourQui;
+
+    @OneToMany(mappedBy = "guide", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Activity> activities = new HashSet<>();
 
     @ManyToMany
     @JoinTable(
-        name = "user_guide",
+        name = "guide_user",
         joinColumns = @JoinColumn(name = "guide_id"),
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private Set<User> users = new HashSet<>();
 
-    @OneToMany(mappedBy = "guide", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Activity> activities = new HashSet<>();
-
+    // Constructeur vide
     public Guide() {}
 
+    // Constructeur complet
     public Guide(String titre, String description, int jours, Mobilite mobilite, Saison saison, PublicCible pourQui) {
         this.titre = titre;
         this.description = description;
@@ -52,55 +60,28 @@ public class Guide {
         this.pourQui = pourQui;
     }
 
-    // Getters & Setters
+    // Getters et setters
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
     public String getTitre() { return titre; }
     public void setTitre(String titre) { this.titre = titre; }
-
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-
     public int getJours() { return jours; }
     public void setJours(int jours) { this.jours = jours; }
-
     public Mobilite getMobilite() { return mobilite; }
     public void setMobilite(Mobilite mobilite) { this.mobilite = mobilite; }
-
     public Saison getSaison() { return saison; }
     public void setSaison(Saison saison) { this.saison = saison; }
-
     public PublicCible getPourQui() { return pourQui; }
     public void setPourQui(PublicCible pourQui) { this.pourQui = pourQui; }
-
+    public Set<Activity> getActivities() { return activities; }
+    public void setActivities(Set<Activity> activities) { this.activities = activities; }
     public Set<User> getUsers() { return users; }
     public void setUsers(Set<User> users) { this.users = users; }
 
-    public Set<Activity> getActivities() { return activities; }
-    public void setActivities(Set<Activity> activities) { this.activities = activities; }
-
-    public void addUser(User user) {
-        users.add(user);
-        user.getGuides().add(this);
-    }
-
-    public void removeUser(User user) {
-        users.remove(user);
-        user.getGuides().remove(this);
-    }
-
-    public void addActivity(Activity activity) {
-        activities.add(activity);
-        activity.setGuide(this);
-    }
-
-    public void removeActivity(Activity activity) {
-        activities.remove(activity);
-        activity.setGuide(null);
-    }
-
-    public enum Mobilite { VOITURE, VELO, A_PIED, MOTO }
-    public enum Saison { ETE, PRINTEMPS, AUTOMNE, HIVER }
-    public enum PublicCible { FAMILLE, SEUL, EN_GROUPE, ENTRE_AMIS }
+    // Relations helpers
+    public void addActivity(Activity activity) { activities.add(activity); activity.setGuide(this); }
+    public void removeActivity(Activity activity) { activities.remove(activity); activity.setGuide(null); }
+    public void addUser(User user) { users.add(user); user.getGuides().add(this); }
+    public void removeUser(User user) { users.remove(user); user.getGuides().remove(this); }
 }
