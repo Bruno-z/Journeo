@@ -1,5 +1,6 @@
 package com.journeo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -17,62 +18,52 @@ public class Activity {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    private Categorie categorie;
+    @Column(nullable = false)
+    private Type type;
 
     private String adresse;
     private String telephone;
-    private String horaires;
     private String siteInternet;
+    private String heureDebut;
+    private int duree;
     private int ordre;
+    private int jour;
 
     @ManyToOne
     @JoinColumn(name = "guide_id")
+    @JsonIgnore
     private Guide guide;
 
     public Activity() {}
-
-    public Activity(String titre, String description, Categorie categorie, String adresse, String telephone,
-                    String horaires, String siteInternet, int ordre) {
-        this.titre = titre;
-        this.description = description;
-        this.categorie = categorie;
-        this.adresse = adresse;
-        this.telephone = telephone;
-        this.horaires = horaires;
-        this.siteInternet = siteInternet;
-        this.ordre = ordre;
+    public Activity(String titre, String description, Type type) {
+        this.titre = titre; this.description = description; this.type = type;
     }
 
     // Getters & Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-
     public String getTitre() { return titre; }
     public void setTitre(String titre) { this.titre = titre; }
-
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-
-    public Categorie getCategorie() { return categorie; }
-    public void setCategorie(Categorie categorie) { this.categorie = categorie; }
-
+    public Type getType() { return type; }
+    public void setType(Type type) { this.type = type; }
     public String getAdresse() { return adresse; }
     public void setAdresse(String adresse) { this.adresse = adresse; }
-
     public String getTelephone() { return telephone; }
     public void setTelephone(String telephone) { this.telephone = telephone; }
-
-    public String getHoraires() { return horaires; }
-    public void setHoraires(String horaires) { this.horaires = horaires; }
-
     public String getSiteInternet() { return siteInternet; }
     public void setSiteInternet(String siteInternet) { this.siteInternet = siteInternet; }
-
+    public String getHeureDebut() { return heureDebut; }
+    public void setHeureDebut(String heureDebut) { this.heureDebut = heureDebut; }
+    public int getDuree() { return duree; }
+    public void setDuree(int duree) { this.duree = duree; }
     public int getOrdre() { return ordre; }
     public void setOrdre(int ordre) { this.ordre = ordre; }
-
+    public int getJour() { return jour; }
+    public void setJour(int jour) { this.jour = jour; }
     public Guide getGuide() { return guide; }
     public void setGuide(Guide guide) { this.guide = guide; }
 
-    public enum Categorie { MUSEE, CHATEAU, ACTIVITE, PARC, GROTTE }
+    public enum Type { MUSEE, CHATEAU, ACTIVITE, PARC, GROTTE }
 }
