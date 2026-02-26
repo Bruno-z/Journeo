@@ -1,10 +1,20 @@
 package com.journeo.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
+@SQLDelete(sql = "UPDATE guide SET deleted = true WHERE id = ?")
+@SQLRestriction("deleted = false")
 public class Guide {
 
     public enum Mobilite { VOITURE, VELO, A_PIED, MOTO }
@@ -47,10 +57,19 @@ public class Guide {
     )
     private Set<User> users = new HashSet<>();
 
-    // Constructeur vide
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
+
     public Guide() {}
 
-    // Constructeur complet
     public Guide(String titre, String description, int jours, Mobilite mobilite, Saison saison, PublicCible pourQui) {
         this.titre = titre;
         this.description = description;
@@ -60,7 +79,6 @@ public class Guide {
         this.pourQui = pourQui;
     }
 
-    // Getters et setters
     public Long getId() { return id; }
     public String getTitre() { return titre; }
     public void setTitre(String titre) { this.titre = titre; }
@@ -78,8 +96,9 @@ public class Guide {
     public void setActivities(Set<Activity> activities) { this.activities = activities; }
     public Set<User> getUsers() { return users; }
     public void setUsers(Set<User> users) { this.users = users; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 
-    // Relations helpers
     public void addActivity(Activity activity) { activities.add(activity); activity.setGuide(this); }
     public void removeActivity(Activity activity) { activities.remove(activity); activity.setGuide(null); }
     public void addUser(User user) { users.add(user); user.getGuides().add(this); }

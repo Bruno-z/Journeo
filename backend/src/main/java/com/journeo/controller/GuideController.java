@@ -10,6 +10,10 @@ import com.journeo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/guides")
@@ -34,17 +36,23 @@ public class GuideController {
     }
 
     @GetMapping
-    public List<GuideResponseDTO> getAllGuides(Authentication authentication) {
+    public Page<GuideResponseDTO> getAllGuides(
+            Authentication authentication,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "titre") String sortBy) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (isAdmin) {
-            return guideService.findAll().stream().map(GuideResponseDTO::new).collect(Collectors.toList());
+            return guideService.findAll(pageable).map(GuideResponseDTO::new);
         }
 
         User user = userService.findByEmail(authentication.getName());
-        if (user == null) return List.of();
-        return guideService.findByUserId(user.getId()).stream().map(GuideResponseDTO::new).collect(Collectors.toList());
+        if (user == null) return Page.empty(pageable);
+        return guideService.findByUserId(user.getId(), pageable).map(GuideResponseDTO::new);
     }
 
     @PostMapping

@@ -1,21 +1,34 @@
 package com.journeo.dto;
 
 import com.journeo.model.Activity;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class ActivityRequestDTO {
 
+    @NotBlank(message = "Le titre est obligatoire")
     private String titre;
+
     private String description;
+
+    @NotNull(message = "Le type est obligatoire")
     private Activity.Type type;
+
     private String adresse;
     private String telephone;
     private String siteInternet;
     private String heureDebut;
+
+    @Min(value = 1, message = "La durée doit être d'au moins 1 minute")
     private int duree;
+
+    @Min(value = 1, message = "L'ordre doit être d'au moins 1")
     private int ordre;
+
+    @Min(value = 1, message = "Le jour doit être d'au moins 1")
     private int jour;
 
-    // Getters & Setters
     public String getTitre() { return titre; }
     public void setTitre(String titre) { this.titre = titre; }
     public String getDescription() { return description; }

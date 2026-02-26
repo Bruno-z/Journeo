@@ -2,9 +2,19 @@ package com.journeo.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "activities")
+@EntityListeners(AuditingEntityListener.class)
+@SQLDelete(sql = "UPDATE activities SET deleted = true WHERE id = ?")
+@SQLRestriction("deleted = false")
 public class Activity {
 
     @Id
@@ -33,6 +43,17 @@ public class Activity {
     @JoinColumn(name = "guide_id")
     @JsonIgnore
     private Guide guide;
+
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Column(nullable = false)
+    private boolean deleted = false;
 
     public Activity() {}
     public Activity(String titre, String description, Type type) {
@@ -64,6 +85,8 @@ public class Activity {
     public void setJour(int jour) { this.jour = jour; }
     public Guide getGuide() { return guide; }
     public void setGuide(Guide guide) { this.guide = guide; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 
     public enum Type { MUSEE, CHATEAU, ACTIVITE, PARC, GROTTE }
 }
