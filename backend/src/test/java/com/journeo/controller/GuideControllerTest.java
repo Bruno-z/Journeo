@@ -92,8 +92,8 @@ public class GuideControllerTest {
     class GetAllGuidesTests {
 
         @Test
-        @DisplayName("Should return all guides successfully")
-        @WithMockUser(roles = "USER")
+        @DisplayName("Should return all guides successfully as ADMIN")
+        @WithMockUser(roles = "ADMIN")
         void shouldReturnAllGuides() throws Exception {
             mockMvc.perform(get("/api/guides"))
                 .andExpect(status().isOk())
@@ -108,7 +108,7 @@ public class GuideControllerTest {
 
         @Test
         @DisplayName("Should return empty list when no guides exist")
-        @WithMockUser(roles = "USER")
+        @WithMockUser(roles = "ADMIN")
         void shouldReturnEmptyList() throws Exception {
             guideRepository.deleteAll();
 
@@ -119,8 +119,8 @@ public class GuideControllerTest {
         }
 
         @Test
-        @DisplayName("Should return multiple guides")
-        @WithMockUser(roles = "USER")
+        @DisplayName("Should return multiple guides as ADMIN")
+        @WithMockUser(roles = "ADMIN")
         void shouldReturnMultipleGuides() throws Exception {
             Guide guide2 = guideRepository.save(new Guide(
                 "Lyon Gastronomy",
@@ -138,6 +138,28 @@ public class GuideControllerTest {
         }
 
         @Test
+        @DisplayName("Should return only assigned guides for regular user")
+        @WithMockUser(username = "user@test.com", roles = "USER")
+        void shouldReturnOnlyAssignedGuidesForUser() throws Exception {
+            testGuide.addUser(regularUser);
+            guideRepository.save(testGuide);
+
+            mockMvc.perform(get("/api/guides"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].titre", equalTo("Paris City Tour")));
+        }
+
+        @Test
+        @DisplayName("Should return empty list for user with no assigned guides")
+        @WithMockUser(username = "user@test.com", roles = "USER")
+        void shouldReturnEmptyListForUserWithNoGuides() throws Exception {
+            mockMvc.perform(get("/api/guides"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+        }
+
+        @Test
         @DisplayName("Should return 401 when not authenticated")
         void shouldReturn401WhenNotAuthenticated() throws Exception {
             mockMvc.perform(get("/api/guides"))
@@ -150,8 +172,8 @@ public class GuideControllerTest {
     class GetGuideByIdTests {
 
         @Test
-        @DisplayName("Should return guide when found")
-        @WithMockUser(roles = "USER")
+        @DisplayName("Should return guide when found as ADMIN")
+        @WithMockUser(roles = "ADMIN")
         void shouldReturnGuideWhenFound() throws Exception {
             mockMvc.perform(get("/api/guides/{id}", testGuide.getId()))
                 .andExpect(status().isOk())
@@ -163,10 +185,30 @@ public class GuideControllerTest {
 
         @Test
         @DisplayName("Should return 404 when guide not found")
-        @WithMockUser(roles = "USER")
+        @WithMockUser(roles = "ADMIN")
         void shouldReturn404WhenNotFound() throws Exception {
             mockMvc.perform(get("/api/guides/9999"))
                 .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("Should return 200 when user accesses their assigned guide")
+        @WithMockUser(username = "user@test.com", roles = "USER")
+        void shouldReturn200WhenUserAccessesAssignedGuide() throws Exception {
+            testGuide.addUser(regularUser);
+            guideRepository.save(testGuide);
+
+            mockMvc.perform(get("/api/guides/{id}", testGuide.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.titre", equalTo("Paris City Tour")));
+        }
+
+        @Test
+        @DisplayName("Should return 403 when user accesses unassigned guide")
+        @WithMockUser(username = "user@test.com", roles = "USER")
+        void shouldReturn403WhenUserAccessesUnassignedGuide() throws Exception {
+            mockMvc.perform(get("/api/guides/{id}", testGuide.getId()))
+                .andExpect(status().isForbidden());
         }
 
         @Test

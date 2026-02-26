@@ -3,12 +3,14 @@ package com.journeo.controller;
 import com.journeo.dto.GuideRequestDTO;
 import com.journeo.dto.GuideResponseDTO;
 import com.journeo.model.Guide;
+import com.journeo.model.User;
 import com.journeo.service.GuideService;
 import com.journeo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -31,8 +33,17 @@ public class GuideController {
     }
 
     @GetMapping
-    public List<GuideResponseDTO> getAllGuides() {
-        return guideService.findAll().stream().map(GuideResponseDTO::new).collect(Collectors.toList());
+    public List<GuideResponseDTO> getAllGuides(Authentication authentication) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (isAdmin) {
+            return guideService.findAll().stream().map(GuideResponseDTO::new).collect(Collectors.toList());
+        }
+
+        User user = userService.findByEmail(authentication.getName());
+        if (user == null) return List.of();
+        return guideService.findByUserId(user.getId()).stream().map(GuideResponseDTO::new).collect(Collectors.toList());
     }
 
     @PostMapping
@@ -65,9 +76,19 @@ public class GuideController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<GuideResponseDTO> getGuideById(@PathVariable Long id) {
+    public ResponseEntity<GuideResponseDTO> getGuideById(@PathVariable Long id, Authentication authentication) {
         Guide guide = guideService.findById(id);
-        return guide != null ? ResponseEntity.ok(new GuideResponseDTO(guide)) : ResponseEntity.notFound().build();
+        if (guide == null) return ResponseEntity.notFound().build();
+
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (isAdmin) return ResponseEntity.ok(new GuideResponseDTO(guide));
+
+        User user = userService.findByEmail(authentication.getName());
+        if (user == null || guide.getUsers().stream().noneMatch(u -> u.getId().equals(user.getId()))) {
+            return ResponseEntity.status(403).build();
+        }
+        return ResponseEntity.ok(new GuideResponseDTO(guide));
     }
 
     @DeleteMapping("/{id}")
