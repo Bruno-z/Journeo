@@ -23,4 +23,4 @@ tmpclaude-*-cwd
 .DS_Store
 
 # Windows reserved files
-# nul
+nul
