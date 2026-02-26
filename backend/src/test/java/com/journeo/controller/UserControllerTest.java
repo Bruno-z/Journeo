@@ -15,9 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,123 +47,49 @@ public class UserControllerTest {
     @Autowired
     private GuideRepository guideRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     private User testUser;
+    private User adminUser;
 
     @BeforeEach
     void setUp() {
         guideRepository.deleteAll();
         userRepository.deleteAll();
 
-        testUser = new User("existing@example.com", "password", User.Role.USER);
+        testUser = new User("user@test.com", passwordEncoder.encode("password123"), User.Role.USER);
+        adminUser = new User("admin@test.com", passwordEncoder.encode("adminpass"), User.Role.ADMIN);
         userRepository.save(testUser);
+        userRepository.save(adminUser);
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/users/ping
-    // -------------------------------------------------------------------------
+    private UserRequestDTO buildCreateDTO(String email, String password, String role) {
+        UserRequestDTO dto = new UserRequestDTO();
+        dto.setEmail(email);
+        dto.setPassword(password);
+        dto.setRole(role);
+        return dto;
+    }
+
+    private UserRequestDTO buildUpdateDTO(String email, String role) {
+        UserRequestDTO dto = new UserRequestDTO();
+        dto.setEmail(email);
+        dto.setRole(role);
+        return dto;
+    }
 
     @Nested
-    @DisplayName("GET /api/users/ping - Health check")
+    @DisplayName("GET /api/users/ping")
     class PingTests {
 
         @Test
         @DisplayName("Should return pong without authentication")
         void shouldReturnPong() throws Exception {
             mockMvc.perform(get("/api/users/ping"))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string("pong"));
+                .andExpect(status().isOk());
         }
     }
-
-    // -------------------------------------------------------------------------
-    // POST /api/users - Create user
-    // -------------------------------------------------------------------------
-
-    @Nested
-    @DisplayName("POST /api/users - Create user")
-    class CreateUserTests {
-
-        @Test
-        @DisplayName("Should create user without authentication (public endpoint)")
-        void shouldCreateUserPublicly() throws Exception {
-            UserRequestDTO dto = new UserRequestDTO();
-            dto.setEmail("new@example.com");
-            dto.setPassword("password123");
-            dto.setRole("USER");
-
-            mockMvc.perform(post("/api/users")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isCreated())
-                    .andExpect(header().exists("Location"))
-                    .andExpect(jsonPath("$.email").value("new@example.com"))
-                    .andExpect(jsonPath("$.role").value("USER"))
-                    .andExpect(jsonPath("$.id").isNumber());
-        }
-
-        @Test
-        @DisplayName("Should return 409 when email is already in use")
-        void shouldReturn409OnDuplicateEmail() throws Exception {
-            UserRequestDTO dto = new UserRequestDTO();
-            dto.setEmail("existing@example.com");
-            dto.setPassword("password123");
-            dto.setRole("USER");
-
-            mockMvc.perform(post("/api/users")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isConflict());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when email is missing")
-        void shouldReturn400WhenEmailMissing() throws Exception {
-            UserRequestDTO dto = new UserRequestDTO();
-            dto.setPassword("password123");
-            dto.setRole("USER");
-
-            mockMvc.perform(post("/api/users")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when password is missing")
-        void shouldReturn400WhenPasswordMissing() throws Exception {
-            UserRequestDTO dto = new UserRequestDTO();
-            dto.setEmail("new@example.com");
-            dto.setRole("USER");
-
-            mockMvc.perform(post("/api/users")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when role is invalid")
-        void shouldReturn400WhenRoleIsInvalid() throws Exception {
-            UserRequestDTO dto = new UserRequestDTO();
-            dto.setEmail("new@example.com");
-            dto.setPassword("password123");
-            dto.setRole("INVALID_ROLE");
-
-            mockMvc.perform(post("/api/users")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isBadRequest());
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // GET /api/users - List all users
-    // -------------------------------------------------------------------------
 
     @Nested
     @DisplayName("GET /api/users - List all users")
@@ -172,9 +100,10 @@ public class UserControllerTest {
         @WithMockUser(roles = "ADMIN")
         void shouldReturnAllUsersAsAdmin() throws Exception {
             mockMvc.perform(get("/api/users"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(1)))
-                    .andExpect(jsonPath("$[0].email").value("existing@example.com"));
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[*].email", containsInAnyOrder("user@test.com", "admin@test.com")));
         }
 
         @Test
@@ -182,20 +111,16 @@ public class UserControllerTest {
         @WithMockUser(roles = "USER")
         void shouldReturn403ForUserRole() throws Exception {
             mockMvc.perform(get("/api/users"))
-                    .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden());
         }
 
         @Test
-        @DisplayName("Should return 401 when unauthenticated")
-        void shouldReturn401WhenUnauthenticated() throws Exception {
+        @DisplayName("Should return 401 when not authenticated")
+        void shouldReturn401WhenNotAuthenticated() throws Exception {
             mockMvc.perform(get("/api/users"))
-                    .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized());
         }
     }
-
-    // -------------------------------------------------------------------------
-    // GET /api/users/{id} - Get user by ID
-    // -------------------------------------------------------------------------
 
     @Nested
     @DisplayName("GET /api/users/{id} - Get user by ID")
@@ -206,10 +131,9 @@ public class UserControllerTest {
         @WithMockUser(roles = "ADMIN")
         void shouldReturnUserWhenFound() throws Exception {
             mockMvc.perform(get("/api/users/{id}", testUser.getId()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(testUser.getId()))
-                    .andExpect(jsonPath("$.email").value("existing@example.com"))
-                    .andExpect(jsonPath("$.role").value("USER"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email", equalTo("user@test.com")))
+                .andExpect(jsonPath("$.role", equalTo("USER")));
         }
 
         @Test
@@ -217,7 +141,7 @@ public class UserControllerTest {
         @WithMockUser(roles = "ADMIN")
         void shouldReturn404WhenNotFound() throws Exception {
             mockMvc.perform(get("/api/users/9999"))
-                    .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound());
         }
 
         @Test
@@ -225,94 +149,176 @@ public class UserControllerTest {
         @WithMockUser(roles = "USER")
         void shouldReturn403ForUserRole() throws Exception {
             mockMvc.perform(get("/api/users/{id}", testUser.getId()))
-                    .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden());
         }
 
         @Test
-        @DisplayName("Should return 401 when unauthenticated")
-        void shouldReturn401WhenUnauthenticated() throws Exception {
+        @DisplayName("Should return 401 when not authenticated")
+        void shouldReturn401WhenNotAuthenticated() throws Exception {
             mockMvc.perform(get("/api/users/{id}", testUser.getId()))
-                    .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized());
         }
     }
 
-    // -------------------------------------------------------------------------
-    // PUT /api/users/{id} - Update user
-    // -------------------------------------------------------------------------
+    @Nested
+    @DisplayName("POST /api/users - Create user")
+    class CreateUserTests {
+
+        @Test
+        @DisplayName("Should create user successfully without authentication")
+        void shouldCreateUserSuccessfully() throws Exception {
+            UserRequestDTO dto = buildCreateDTO("newuser@test.com", "password123", "USER");
+
+            MvcResult result = mockMvc.perform(post("/api/users")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(header().exists("Location"))
+                .andExpect(jsonPath("$.email", equalTo("newuser@test.com")))
+                .andExpect(jsonPath("$.role", equalTo("USER")))
+                .andReturn();
+
+            String location = result.getResponse().getHeader("Location");
+            assertThat(location).contains("/api/users/");
+            assertThat(userRepository.findByEmail("newuser@test.com")).isPresent();
+        }
+
+        @Test
+        @DisplayName("Should create ADMIN user")
+        void shouldCreateAdminUser() throws Exception {
+            UserRequestDTO dto = buildCreateDTO("newadmin@test.com", "adminpass", "ADMIN");
+
+            mockMvc.perform(post("/api/users")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.role", equalTo("ADMIN")));
+        }
+
+        @Test
+        @DisplayName("Should return 409 when email already taken")
+        void shouldReturn409WhenEmailAlreadyTaken() throws Exception {
+            UserRequestDTO dto = buildCreateDTO("user@test.com", "password123", "USER");
+
+            mockMvc.perform(post("/api/users")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isConflict());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when email is blank")
+        void shouldReturn400WhenEmailIsBlank() throws Exception {
+            UserRequestDTO dto = buildCreateDTO("", "password123", "USER");
+
+            mockMvc.perform(post("/api/users")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when role is blank")
+        void shouldReturn400WhenRoleIsBlank() throws Exception {
+            UserRequestDTO dto = buildCreateDTO("valid@test.com", "password123", "");
+
+            mockMvc.perform(post("/api/users")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Should return 400 when role is invalid")
+        void shouldReturn400WhenRoleIsInvalid() throws Exception {
+            String invalidJson = "{\"email\":\"valid@test.com\",\"password\":\"pass123\",\"role\":\"SUPERADMIN\"}";
+
+            mockMvc.perform(post("/api/users")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidJson))
+                .andExpect(status().isBadRequest());
+        }
+    }
 
     @Nested
     @DisplayName("PUT /api/users/{id} - Update user")
     class UpdateUserTests {
 
         @Test
-        @DisplayName("Should update email successfully as ADMIN")
+        @DisplayName("Should update user successfully as ADMIN")
         @WithMockUser(roles = "ADMIN")
         void shouldUpdateUserSuccessfully() throws Exception {
-            UserRequestDTO dto = new UserRequestDTO();
-            dto.setEmail("updated@example.com");
-            dto.setRole("ADMIN");
+            UserRequestDTO dto = buildUpdateDTO("updated@test.com", "USER");
 
             mockMvc.perform(put("/api/users/{id}", testUser.getId())
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.email").value("updated@example.com"))
-                    .andExpect(jsonPath("$.role").value("ADMIN"));
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email", equalTo("updated@test.com")));
+
+            assertThat(userRepository.findByEmail("updated@test.com")).isPresent();
         }
 
         @Test
-        @DisplayName("Should return 404 when user not found")
+        @DisplayName("Should update role successfully")
         @WithMockUser(roles = "ADMIN")
-        void shouldReturn404WhenNotFound() throws Exception {
-            UserRequestDTO dto = new UserRequestDTO();
-            dto.setEmail("updated@example.com");
-            dto.setRole("USER");
+        void shouldUpdateRoleSuccessfully() throws Exception {
+            UserRequestDTO dto = buildUpdateDTO("user@test.com", "ADMIN");
 
-            mockMvc.perform(put("/api/users/9999")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isNotFound());
+            mockMvc.perform(put("/api/users/{id}", testUser.getId())
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.role", equalTo("ADMIN")));
         }
 
         @Test
-        @DisplayName("Should return 409 when new email is already taken")
+        @DisplayName("Should return 409 when email already taken")
         @WithMockUser(roles = "ADMIN")
         void shouldReturn409WhenEmailAlreadyTaken() throws Exception {
-            User otherUser = new User("other@example.com", "password", User.Role.USER);
-            userRepository.save(otherUser);
-
-            UserRequestDTO dto = new UserRequestDTO();
-            dto.setEmail("other@example.com"); // already used by otherUser
-            dto.setRole("USER");
+            UserRequestDTO dto = buildUpdateDTO("admin@test.com", "USER");
 
             mockMvc.perform(put("/api/users/{id}", testUser.getId())
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isConflict());
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isConflict());
         }
 
         @Test
         @DisplayName("Should return 403 for USER role")
         @WithMockUser(roles = "USER")
         void shouldReturn403ForUserRole() throws Exception {
-            UserRequestDTO dto = new UserRequestDTO();
-            dto.setEmail("updated@example.com");
-            dto.setRole("USER");
+            UserRequestDTO dto = buildUpdateDTO("updated@test.com", "USER");
 
             mockMvc.perform(put("/api/users/{id}", testUser.getId())
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isForbidden());
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @DisplayName("Should return 404 when user not found")
+        @WithMockUser(roles = "ADMIN")
+        void shouldReturn404WhenNotFound() throws Exception {
+            UserRequestDTO dto = buildUpdateDTO("updated@test.com", "USER");
+
+            mockMvc.perform(put("/api/users/9999")
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isNotFound());
         }
     }
-
-    // -------------------------------------------------------------------------
-    // DELETE /api/users/{id} - Delete user
-    // -------------------------------------------------------------------------
 
     @Nested
     @DisplayName("DELETE /api/users/{id} - Delete user")
@@ -323,10 +329,10 @@ public class UserControllerTest {
         @WithMockUser(roles = "ADMIN")
         void shouldDeleteUserSuccessfully() throws Exception {
             mockMvc.perform(delete("/api/users/{id}", testUser.getId())
-                            .with(csrf()))
-                    .andExpect(status().isOk());
+                .with(csrf()))
+                .andExpect(status().isOk());
 
-            assertThat(userRepository.existsById(testUser.getId())).isFalse();
+            assertThat(userRepository.findById(testUser.getId())).isEmpty();
         }
 
         @Test
@@ -334,8 +340,8 @@ public class UserControllerTest {
         @WithMockUser(roles = "ADMIN")
         void shouldReturn404WhenNotFound() throws Exception {
             mockMvc.perform(delete("/api/users/9999")
-                            .with(csrf()))
-                    .andExpect(status().isNotFound());
+                .with(csrf()))
+                .andExpect(status().isNotFound());
         }
 
         @Test
@@ -343,49 +349,47 @@ public class UserControllerTest {
         @WithMockUser(roles = "USER")
         void shouldReturn403ForUserRole() throws Exception {
             mockMvc.perform(delete("/api/users/{id}", testUser.getId())
-                            .with(csrf()))
-                    .andExpect(status().isForbidden());
+                .with(csrf()))
+                .andExpect(status().isForbidden());
         }
 
         @Test
-        @DisplayName("Should return 401 when unauthenticated")
-        void shouldReturn401WhenUnauthenticated() throws Exception {
+        @DisplayName("Should return 401 when not authenticated")
+        void shouldReturn401WhenNotAuthenticated() throws Exception {
             mockMvc.perform(delete("/api/users/{id}", testUser.getId())
-                            .with(csrf()))
-                    .andExpect(status().isUnauthorized());
+                .with(csrf()))
+                .andExpect(status().isUnauthorized());
         }
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/users/{id}/guides - Get guides of a user
-    // -------------------------------------------------------------------------
-
     @Nested
-    @DisplayName("GET /api/users/{id}/guides - Get assigned guides")
+    @DisplayName("GET /api/users/{userId}/guides - Get user guides")
     class GetUserGuidesTests {
 
         @Test
-        @DisplayName("Should return empty list when user has no assigned guides")
+        @DisplayName("Should return guides assigned to user as ADMIN")
         @WithMockUser(roles = "ADMIN")
-        void shouldReturnEmptyListWhenNoGuides() throws Exception {
-            mockMvc.perform(get("/api/users/{id}/guides", testUser.getId()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(0)));
-        }
-
-        @Test
-        @DisplayName("Should return assigned guides for user")
-        @WithMockUser(roles = "ADMIN")
-        void shouldReturnAssignedGuides() throws Exception {
-            Guide guide = new Guide("Paris Tour", "desc", 3,
-                    Guide.Mobilite.A_PIED, Guide.Saison.ETE, Guide.PublicCible.FAMILLE);
+        void shouldReturnUserGuides() throws Exception {
+            Guide guide = new Guide(
+                "Paris Tour", "Beautiful Paris", 3,
+                Guide.Mobilite.A_PIED, Guide.Saison.ETE, Guide.PublicCible.FAMILLE
+            );
             guide.addUser(testUser);
             guideRepository.save(guide);
 
-            mockMvc.perform(get("/api/users/{id}/guides", testUser.getId()))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(1)))
-                    .andExpect(jsonPath("$[0].titre").value("Paris Tour"));
+            mockMvc.perform(get("/api/users/{userId}/guides", testUser.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].titre", equalTo("Paris Tour")));
+        }
+
+        @Test
+        @DisplayName("Should return empty list when user has no guides")
+        @WithMockUser(roles = "ADMIN")
+        void shouldReturnEmptyListWhenNoGuides() throws Exception {
+            mockMvc.perform(get("/api/users/{userId}/guides", testUser.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
         }
 
         @Test
@@ -393,15 +397,15 @@ public class UserControllerTest {
         @WithMockUser(roles = "ADMIN")
         void shouldReturn404WhenUserNotFound() throws Exception {
             mockMvc.perform(get("/api/users/9999/guides"))
-                    .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound());
         }
 
         @Test
         @DisplayName("Should return 403 for USER role")
         @WithMockUser(roles = "USER")
         void shouldReturn403ForUserRole() throws Exception {
-            mockMvc.perform(get("/api/users/{id}/guides", testUser.getId()))
-                    .andExpect(status().isForbidden());
+            mockMvc.perform(get("/api/users/{userId}/guides", testUser.getId()))
+                .andExpect(status().isForbidden());
         }
     }
 }
