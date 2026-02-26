@@ -2,6 +2,7 @@ package com.journeo.service;
 
 import com.journeo.dto.UserRequestDTO;
 import com.journeo.dto.UserResponseDTO;
+import com.journeo.exception.ConflictException;
 import com.journeo.model.User;
 import com.journeo.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,6 +39,11 @@ public class UserService {
             throw new IllegalArgumentException("Role cannot be null or empty");
         }
 
+        // Vérification doublon email
+        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
+            throw new ConflictException("Email already in use: " + dto.getEmail());
+        }
+
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
@@ -53,6 +59,10 @@ public class UserService {
 
         // Mise à jour conditionnelle du email
         if (dto.getEmail() != null && !dto.getEmail().isBlank()) {
+            if (!dto.getEmail().equals(user.getEmail()) &&
+                    userRepository.findByEmail(dto.getEmail()).isPresent()) {
+                throw new ConflictException("Email already in use: " + dto.getEmail());
+            }
             user.setEmail(dto.getEmail());
         }
 
@@ -75,6 +85,10 @@ public class UserService {
 
     public User findById(Long id) {
         return userRepository.findById(id).orElse(null);
+    }
+
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
     }
 
     public List<User> findAll() {
