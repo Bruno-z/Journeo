@@ -2,7 +2,6 @@ package com.journeo.repository;
 
 import com.journeo.model.Guide;
 import com.journeo.model.User;
-import com.journeo.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -12,11 +11,10 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Integration Test Suite for Guide Repository
@@ -24,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Tests database persistence, querying, and relationship management using Spring Data JPA.
  * Uses an in-memory test database for isolated testing.
  */
+@SuppressWarnings("null")
 @DataJpaTest
 @ActiveProfiles("test")
 @DisplayName("Guide Repository Tests")
@@ -72,7 +71,7 @@ public class GuideRepositoryTest {
         @Test
         @DisplayName("Should save guide to database")
         void shouldSaveGuide() {
-            Guide saved = guideRepository.save(testGuide1);
+            Guide saved = Objects.requireNonNull(guideRepository.save(testGuide1));
 
             assertThat(saved).isNotNull();
             assertThat(saved.getId()).isNotNull();
@@ -84,7 +83,7 @@ public class GuideRepositoryTest {
         void shouldGenerateIdOnSave() {
             assertThat(testGuide1.getId()).isNull();
 
-            Guide saved = guideRepository.save(testGuide1);
+            Guide saved = Objects.requireNonNull(guideRepository.save(testGuide1));
 
             assertThat(saved.getId()).isNotNull().isPositive();
         }
@@ -92,7 +91,7 @@ public class GuideRepositoryTest {
         @Test
         @DisplayName("Should persist all guide properties")
         void shouldPersistAllProperties() {
-            Guide saved = guideRepository.save(testGuide1);
+            Guide saved = Objects.requireNonNull(guideRepository.save(testGuide1));
 
             assertThat(saved)
                 .extracting("titre", "description", "jours", "mobilite", "saison", "pourQui")
@@ -122,7 +121,7 @@ public class GuideRepositoryTest {
         void shouldAcceptNullDescription() {
             testGuide1.setDescription(null);
 
-            Guide saved = guideRepository.save(testGuide1);
+            Guide saved = Objects.requireNonNull(guideRepository.save(testGuide1));
 
             assertThat(saved.getDescription()).isNull();
         }
@@ -135,9 +134,10 @@ public class GuideRepositoryTest {
         @Test
         @DisplayName("Should find guide by ID")
         void shouldFindGuideById() {
-            Guide saved = guideRepository.save(testGuide1);
+            Guide saved = Objects.requireNonNull(guideRepository.save(testGuide1));
+            Long savedId = Objects.requireNonNull(saved.getId());
 
-            Optional<Guide> found = guideRepository.findById(saved.getId());
+            Optional<Guide> found = guideRepository.findById(savedId);
 
             assertThat(found).isPresent();
             assertThat(found.get().getTitre()).isEqualTo("Paris Tour");
@@ -154,10 +154,11 @@ public class GuideRepositoryTest {
         @Test
         @DisplayName("Should retrieve correct guide among multiple")
         void shouldRetrieveCorrectGuide() {
-            Guide saved1 = guideRepository.save(testGuide1);
-            Guide saved2 = guideRepository.save(testGuide2);
+            Guide saved1 = Objects.requireNonNull(guideRepository.save(testGuide1));
+            guideRepository.save(testGuide2);
+            Long saved1Id = Objects.requireNonNull(saved1.getId());
 
-            Optional<Guide> found = guideRepository.findById(saved1.getId());
+            Optional<Guide> found = guideRepository.findById(saved1Id);
 
             assertThat(found).isPresent();
             assertThat(found.get().getTitre()).isEqualTo("Paris Tour");
@@ -216,33 +217,36 @@ public class GuideRepositoryTest {
         @Test
         @DisplayName("Should delete guide from database")
         void shouldDeleteGuide() {
-            Guide saved = guideRepository.save(testGuide1);
+            Guide saved = Objects.requireNonNull(guideRepository.save(testGuide1));
+            Long savedId = Objects.requireNonNull(saved.getId());
 
             guideRepository.delete(saved);
 
-            assertThat(guideRepository.findById(saved.getId())).isEmpty();
+            assertThat(guideRepository.findById(savedId)).isEmpty();
         }
 
         @Test
         @DisplayName("Should delete only specified guide")
         void shouldDeleteOnlySpecifiedGuide() {
-            Guide saved1 = guideRepository.save(testGuide1);
-            Guide saved2 = guideRepository.save(testGuide2);
+            Guide saved1 = Objects.requireNonNull(guideRepository.save(testGuide1));
+            Guide saved2 = Objects.requireNonNull(guideRepository.save(testGuide2));
+            Long saved2Id = Objects.requireNonNull(saved2.getId());
 
             guideRepository.delete(saved1);
 
             assertThat(guideRepository.findAll()).hasSize(1);
-            assertThat(guideRepository.findById(saved2.getId())).isPresent();
+            assertThat(guideRepository.findById(saved2Id)).isPresent();
         }
 
         @Test
         @DisplayName("Should delete by ID")
         void shouldDeleteById() {
-            Guide saved = guideRepository.save(testGuide1);
+            Guide saved = Objects.requireNonNull(guideRepository.save(testGuide1));
+            Long savedId = Objects.requireNonNull(saved.getId());
 
-            guideRepository.deleteById(saved.getId());
+            guideRepository.deleteById(savedId);
 
-            assertThat(guideRepository.findById(saved.getId())).isEmpty();
+            assertThat(guideRepository.findById(savedId)).isEmpty();
         }
     }
 
@@ -253,13 +257,14 @@ public class GuideRepositoryTest {
         @Test
         @DisplayName("Should update guide properties")
         void shouldUpdateGuideProperties() {
-            Guide saved = guideRepository.save(testGuide1);
+            Guide saved = Objects.requireNonNull(guideRepository.save(testGuide1));
+            Long savedId = Objects.requireNonNull(saved.getId());
 
             saved.setTitre("Updated Paris Tour");
             saved.setJours(5);
             guideRepository.save(saved);
 
-            Optional<Guide> updated = guideRepository.findById(saved.getId());
+            Optional<Guide> updated = guideRepository.findById(savedId);
 
             assertThat(updated.get())
                 .extracting("titre", "jours")
@@ -269,14 +274,15 @@ public class GuideRepositoryTest {
         @Test
         @DisplayName("Should update enum fields")
         void shouldUpdateEnumFields() {
-            Guide saved = guideRepository.save(testGuide1);
+            Guide saved = Objects.requireNonNull(guideRepository.save(testGuide1));
+            Long savedId = Objects.requireNonNull(saved.getId());
 
             saved.setMobilite(Guide.Mobilite.VELO);
             saved.setSaison(Guide.Saison.AUTOMNE);
             saved.setPourQui(Guide.PublicCible.SEUL);
             guideRepository.save(saved);
 
-            Optional<Guide> updated = guideRepository.findById(saved.getId());
+            Optional<Guide> updated = guideRepository.findById(savedId);
 
             assertThat(updated.get())
                 .extracting("mobilite", "saison", "pourQui")
@@ -290,8 +296,8 @@ public class GuideRepositoryTest {
         @Test
         @DisplayName("Should preserve other fields on update")
         void shouldPreserveOtherFields() {
-            Guide saved = guideRepository.save(testGuide1);
-            Long originalId = saved.getId();
+            Guide saved = Objects.requireNonNull(guideRepository.save(testGuide1));
+            Long originalId = Objects.requireNonNull(saved.getId());
 
             saved.setTitre("New Title");
             guideRepository.save(saved);
@@ -311,13 +317,14 @@ public class GuideRepositoryTest {
         @Test
         @DisplayName("Should add user to guide")
         void shouldAddUserToGuide() {
-            Guide savedGuide = guideRepository.save(testGuide1);
-            User savedUser = userRepository.save(testUser);
+            Guide savedGuide = Objects.requireNonNull(guideRepository.save(testGuide1));
+            User savedUser = Objects.requireNonNull(userRepository.save(testUser));
 
             savedGuide.addUser(savedUser);
-            savedGuide = guideRepository.save(savedGuide);
+            savedGuide = Objects.requireNonNull(guideRepository.save(savedGuide));
+            Long savedGuideId = Objects.requireNonNull(savedGuide.getId());
 
-            Optional<Guide> retrieved = guideRepository.findById(savedGuide.getId());
+            Optional<Guide> retrieved = guideRepository.findById(savedGuideId);
 
             assertThat(retrieved.get().getUsers()).hasSize(1);
             assertThat(retrieved.get().getUsers()).contains(savedUser);
@@ -326,15 +333,16 @@ public class GuideRepositoryTest {
         @Test
         @DisplayName("Should add multiple users to guide")
         void shouldAddMultipleUsersToGuide() {
-            Guide savedGuide = guideRepository.save(testGuide1);
-            User user1 = userRepository.save(new User("user1@test.com", "pass", User.Role.USER));
-            User user2 = userRepository.save(new User("user2@test.com", "pass", User.Role.USER));
+            Guide savedGuide = Objects.requireNonNull(guideRepository.save(testGuide1));
+            Long savedGuideId = Objects.requireNonNull(savedGuide.getId());
+            User user1 = Objects.requireNonNull(userRepository.save(new User("user1@test.com", "pass", User.Role.USER)));
+            User user2 = Objects.requireNonNull(userRepository.save(new User("user2@test.com", "pass", User.Role.USER)));
 
             savedGuide.addUser(user1);
             savedGuide.addUser(user2);
             guideRepository.save(savedGuide);
 
-            Optional<Guide> retrieved = guideRepository.findById(savedGuide.getId());
+            Optional<Guide> retrieved = guideRepository.findById(savedGuideId);
 
             assertThat(retrieved.get().getUsers()).hasSize(2);
         }
@@ -342,15 +350,16 @@ public class GuideRepositoryTest {
         @Test
         @DisplayName("Should remove user from guide")
         void shouldRemoveUserFromGuide() {
-            Guide savedGuide = guideRepository.save(testGuide1);
-            User savedUser = userRepository.save(testUser);
+            Guide savedGuide = Objects.requireNonNull(guideRepository.save(testGuide1));
+            User savedUser = Objects.requireNonNull(userRepository.save(testUser));
             savedGuide.addUser(savedUser);
-            guideRepository.save(savedGuide);
+            savedGuide = Objects.requireNonNull(guideRepository.save(savedGuide));
+            Long savedGuideId = Objects.requireNonNull(savedGuide.getId());
 
             savedGuide.removeUser(savedUser);
             guideRepository.save(savedGuide);
 
-            Optional<Guide> retrieved = guideRepository.findById(savedGuide.getId());
+            Optional<Guide> retrieved = guideRepository.findById(savedGuideId);
 
             assertThat(retrieved.get().getUsers()).isEmpty();
         }
@@ -358,12 +367,13 @@ public class GuideRepositoryTest {
         @Test
         @DisplayName("Should maintain relationship on guide retrieval")
         void shouldMaintainRelationshipOnRetrieval() {
-            Guide savedGuide = guideRepository.save(testGuide1);
-            User savedUser = userRepository.save(testUser);
+            Guide savedGuide = Objects.requireNonNull(guideRepository.save(testGuide1));
+            User savedUser = Objects.requireNonNull(userRepository.save(testUser));
             savedGuide.addUser(savedUser);
-            guideRepository.save(savedGuide);
+            savedGuide = Objects.requireNonNull(guideRepository.save(savedGuide));
+            Long savedGuideId = Objects.requireNonNull(savedGuide.getId());
 
-            Optional<Guide> retrieved = guideRepository.findById(savedGuide.getId());
+            Optional<Guide> retrieved = guideRepository.findById(savedGuideId);
 
             assertThat(retrieved.get().getUsers())
                 .extracting(User::getEmail)
@@ -378,15 +388,16 @@ public class GuideRepositoryTest {
         @Test
         @DisplayName("Should preserve guide relationships on update")
         void shouldPreserveGuideRelationships() {
-            Guide savedGuide = guideRepository.save(testGuide1);
-            User savedUser = userRepository.save(testUser);
+            Guide savedGuide = Objects.requireNonNull(guideRepository.save(testGuide1));
+            User savedUser = Objects.requireNonNull(userRepository.save(testUser));
             savedGuide.addUser(savedUser);
-            guideRepository.save(savedGuide);
+            savedGuide = Objects.requireNonNull(guideRepository.save(savedGuide));
+            Long savedGuideId = Objects.requireNonNull(savedGuide.getId());
 
             savedGuide.setTitre("Updated Title");
             guideRepository.save(savedGuide);
 
-            Optional<Guide> retrieved = guideRepository.findById(savedGuide.getId());
+            Optional<Guide> retrieved = guideRepository.findById(savedGuideId);
 
             assertThat(retrieved.get().getUsers()).hasSize(1);
         }
@@ -399,11 +410,10 @@ public class GuideRepositoryTest {
         @Test
         @DisplayName("Should update entity instead of creating duplicate on repeated save")
         void shouldUpdateExistingGuideOnRepeatedSave() {
-            Guide saved1 = guideRepository.save(testGuide1);
+            Guide saved1 = Objects.requireNonNull(guideRepository.save(testGuide1));
             saved1.setTitre("Updated Title");
-            Guide saved2 = guideRepository.save(saved1);
+            Guide saved2 = Objects.requireNonNull(guideRepository.save(saved1));
 
-            // Both should reference the same entity
             assertThat(saved2.getId()).isEqualTo(saved1.getId());
             assertThat(saved2.getTitre()).isEqualTo("Updated Title");
             assertThat(guideRepository.findAll()).hasSize(1);
@@ -412,15 +422,17 @@ public class GuideRepositoryTest {
         @Test
         @DisplayName("Should maintain data consistency across operations")
         void shouldMaintainDataConsistency() {
-            Guide saved1 = guideRepository.save(testGuide1);
-            Guide saved2 = guideRepository.save(testGuide2);
+            Guide saved1 = Objects.requireNonNull(guideRepository.save(testGuide1));
+            Guide saved2 = Objects.requireNonNull(guideRepository.save(testGuide2));
+            Long saved1Id = Objects.requireNonNull(saved1.getId());
+            Long saved2Id = Objects.requireNonNull(saved2.getId());
 
-            guideRepository.deleteById(saved1.getId());
+            guideRepository.deleteById(saved1Id);
 
             List<Guide> remaining = guideRepository.findAll();
 
             assertThat(remaining).hasSize(1);
-            assertThat(remaining.get(0).getId()).isEqualTo(saved2.getId());
+            assertThat(remaining.get(0).getId()).isEqualTo(saved2Id);
         }
     }
 }
