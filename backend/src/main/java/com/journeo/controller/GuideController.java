@@ -2,13 +2,16 @@ package com.journeo.controller;
 
 import com.journeo.dto.GuideRequestDTO;
 import com.journeo.dto.GuideResponseDTO;
+import com.journeo.exception.ResourceNotFoundException;
 import com.journeo.model.Guide;
+import com.journeo.model.User;
 import com.journeo.service.GuideService;
 import com.journeo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -31,28 +34,32 @@ public class GuideController {
     }
 
     @GetMapping
-    public List<GuideResponseDTO> getAllGuides() {
-        return guideService.findAll().stream().map(GuideResponseDTO::new).collect(Collectors.toList());
+    public List<GuideResponseDTO> getAllGuides(Authentication authentication) {
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (isAdmin) {
+            return guideService.findAll().stream().map(GuideResponseDTO::new).collect(Collectors.toList());
+        }
+
+        User user = userService.findByEmail(authentication.getName());
+        if (user == null) return List.of();
+        return guideService.findByUserId(user.getId()).stream().map(GuideResponseDTO::new).collect(Collectors.toList());
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Créer un guide")
     public ResponseEntity<GuideResponseDTO> createGuide(@Valid @RequestBody GuideRequestDTO dto) {
-
-        Guide guide;
-        try {
-            guide = new Guide(
-                dto.getTitre(),
-                dto.getDescription(),
-                dto.getJours(),
-                Guide.Mobilite.valueOf(dto.getMobilite().toUpperCase()),
-                Guide.Saison.valueOf(dto.getSaison().toUpperCase()),
-                Guide.PublicCible.valueOf(dto.getPourQui().toUpperCase())
-            );
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null); // valeur enum invalide
-        }
+        // IllegalArgumentException (enum invalide) → capturée par GlobalExceptionHandler → 400
+        Guide guide = new Guide(
+            dto.getTitre(),
+            dto.getDescription(),
+            dto.getJours(),
+            Guide.Mobilite.valueOf(dto.getMobilite().toUpperCase()),
+            Guide.Saison.valueOf(dto.getSaison().toUpperCase()),
+            Guide.PublicCible.valueOf(dto.getPourQui().toUpperCase())
+        );
 
         Guide saved = guideService.save(guide);
 
@@ -65,20 +72,28 @@ public class GuideController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<GuideResponseDTO> getGuideById(@PathVariable Long id) {
+    public ResponseEntity<GuideResponseDTO> getGuideById(@PathVariable Long id, Authentication authentication) {
         Guide guide = guideService.findById(id);
-        return guide != null ? ResponseEntity.ok(new GuideResponseDTO(guide)) : ResponseEntity.notFound().build();
+        if (guide == null) throw new ResourceNotFoundException("Guide not found with id: " + id);
+
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (isAdmin) return ResponseEntity.ok(new GuideResponseDTO(guide));
+
+        User user = userService.findByEmail(authentication.getName());
+        if (user == null || guide.getUsers().stream().noneMatch(u -> u.getId().equals(user.getId()))) {
+            return ResponseEntity.status(403).build();
+        }
+        return ResponseEntity.ok(new GuideResponseDTO(guide));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteGuide(@PathVariable Long id) {
         Guide guide = guideService.findById(id);
-        if (guide != null) {
-            guideService.delete(guide);
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.notFound().build();
+        if (guide == null) throw new ResourceNotFoundException("Guide not found with id: " + id);
+        guideService.delete(guide);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")
@@ -86,7 +101,7 @@ public class GuideController {
     @Operation(summary = "Mettre à jour un guide")
     public ResponseEntity<GuideResponseDTO> updateGuide(@PathVariable Long id, @Valid @RequestBody GuideRequestDTO dto) {
         Guide updated = guideService.update(id, dto);
-        if (updated == null) return ResponseEntity.notFound().build();
+        if (updated == null) throw new ResourceNotFoundException("Guide not found with id: " + id);
         return ResponseEntity.ok(new GuideResponseDTO(updated));
     }
 
@@ -95,7 +110,7 @@ public class GuideController {
     @Operation(summary = "Assigner un utilisateur à un guide")
     public ResponseEntity<GuideResponseDTO> addUserToGuide(@PathVariable Long guideId, @PathVariable Long userId) {
         Guide updated = guideService.addUserToGuide(guideId, userId);
-        if (updated == null) return ResponseEntity.badRequest().build();
+        if (updated == null) throw new ResourceNotFoundException("Guide or User not found");
         return ResponseEntity.ok(new GuideResponseDTO(updated));
     }
 
@@ -104,7 +119,7 @@ public class GuideController {
     @Operation(summary = "Retirer un utilisateur d'un guide")
     public ResponseEntity<GuideResponseDTO> removeUserFromGuide(@PathVariable Long guideId, @PathVariable Long userId) {
         Guide updated = guideService.removeUserFromGuide(guideId, userId);
-        if (updated == null) return ResponseEntity.badRequest().build();
+        if (updated == null) throw new ResourceNotFoundException("Guide or User not found");
         return ResponseEntity.ok(new GuideResponseDTO(updated));
     }
 }

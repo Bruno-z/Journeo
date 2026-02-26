@@ -59,6 +59,11 @@ public class GuideService {
         return guideRepository.findAll();
     }
 
+    // Lister les guides assignés à un utilisateur
+    public List<Guide> findByUserId(Long userId) {
+        return guideRepository.findByUsersId(userId);
+    }
+
     // Ajouter un utilisateur à un guide
     public Guide addUserToGuide(Long guideId, Long userId) {
         Optional<Guide> guideOpt = guideRepository.findById(guideId);
