@@ -65,10 +65,6 @@ public class UserController {
         )
     )
     public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserRequestDTO dto) {
-        // 🔍 Debug: Log what was received
-        System.out.println("DEBUG: Received UserRequestDTO - email: " + (dto != null ? dto.getEmail() : "DTO is null") + ", password: " + (dto != null ? dto.getPassword() : "N/A") + ", role: " + (dto != null ? dto.getRole() : "N/A"));
-
-        // ✅ Utilisation du service pour créer l'utilisateur
         User saved = userService.createUser(dto);
 
         // 🔹 Construction de l'URL du nouvel utilisateur

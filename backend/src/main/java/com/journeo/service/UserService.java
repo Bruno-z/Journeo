@@ -59,6 +59,10 @@ public class UserService {
 
         // Mise à jour conditionnelle du email
         if (dto.getEmail() != null && !dto.getEmail().isBlank()) {
+            if (!dto.getEmail().equals(user.getEmail()) &&
+                    userRepository.findByEmail(dto.getEmail()).isPresent()) {
+                throw new ConflictException("Email already in use: " + dto.getEmail());
+            }
             user.setEmail(dto.getEmail());
         }
 
