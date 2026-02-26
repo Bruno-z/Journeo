@@ -2,6 +2,7 @@ package com.journeo.controller;
 
 import com.journeo.dto.GuideRequestDTO;
 import com.journeo.dto.GuideResponseDTO;
+import com.journeo.exception.ResourceNotFoundException;
 import com.journeo.model.Guide;
 import com.journeo.model.User;
 import com.journeo.service.GuideService;
@@ -50,20 +51,15 @@ public class GuideController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Créer un guide")
     public ResponseEntity<GuideResponseDTO> createGuide(@Valid @RequestBody GuideRequestDTO dto) {
-
-        Guide guide;
-        try {
-            guide = new Guide(
-                dto.getTitre(),
-                dto.getDescription(),
-                dto.getJours(),
-                Guide.Mobilite.valueOf(dto.getMobilite().toUpperCase()),
-                Guide.Saison.valueOf(dto.getSaison().toUpperCase()),
-                Guide.PublicCible.valueOf(dto.getPourQui().toUpperCase())
-            );
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null); // valeur enum invalide
-        }
+        // IllegalArgumentException (enum invalide) → capturée par GlobalExceptionHandler → 400
+        Guide guide = new Guide(
+            dto.getTitre(),
+            dto.getDescription(),
+            dto.getJours(),
+            Guide.Mobilite.valueOf(dto.getMobilite().toUpperCase()),
+            Guide.Saison.valueOf(dto.getSaison().toUpperCase()),
+            Guide.PublicCible.valueOf(dto.getPourQui().toUpperCase())
+        );
 
         Guide saved = guideService.save(guide);
 
@@ -78,7 +74,7 @@ public class GuideController {
     @GetMapping("/{id}")
     public ResponseEntity<GuideResponseDTO> getGuideById(@PathVariable Long id, Authentication authentication) {
         Guide guide = guideService.findById(id);
-        if (guide == null) return ResponseEntity.notFound().build();
+        if (guide == null) throw new ResourceNotFoundException("Guide not found with id: " + id);
 
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
@@ -95,11 +91,9 @@ public class GuideController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteGuide(@PathVariable Long id) {
         Guide guide = guideService.findById(id);
-        if (guide != null) {
-            guideService.delete(guide);
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.notFound().build();
+        if (guide == null) throw new ResourceNotFoundException("Guide not found with id: " + id);
+        guideService.delete(guide);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")
@@ -107,7 +101,7 @@ public class GuideController {
     @Operation(summary = "Mettre à jour un guide")
     public ResponseEntity<GuideResponseDTO> updateGuide(@PathVariable Long id, @Valid @RequestBody GuideRequestDTO dto) {
         Guide updated = guideService.update(id, dto);
-        if (updated == null) return ResponseEntity.notFound().build();
+        if (updated == null) throw new ResourceNotFoundException("Guide not found with id: " + id);
         return ResponseEntity.ok(new GuideResponseDTO(updated));
     }
 
@@ -116,7 +110,7 @@ public class GuideController {
     @Operation(summary = "Assigner un utilisateur à un guide")
     public ResponseEntity<GuideResponseDTO> addUserToGuide(@PathVariable Long guideId, @PathVariable Long userId) {
         Guide updated = guideService.addUserToGuide(guideId, userId);
-        if (updated == null) return ResponseEntity.badRequest().build();
+        if (updated == null) throw new ResourceNotFoundException("Guide or User not found");
         return ResponseEntity.ok(new GuideResponseDTO(updated));
     }
 
@@ -125,7 +119,7 @@ public class GuideController {
     @Operation(summary = "Retirer un utilisateur d'un guide")
     public ResponseEntity<GuideResponseDTO> removeUserFromGuide(@PathVariable Long guideId, @PathVariable Long userId) {
         Guide updated = guideService.removeUserFromGuide(guideId, userId);
-        if (updated == null) return ResponseEntity.badRequest().build();
+        if (updated == null) throw new ResourceNotFoundException("Guide or User not found");
         return ResponseEntity.ok(new GuideResponseDTO(updated));
     }
 }

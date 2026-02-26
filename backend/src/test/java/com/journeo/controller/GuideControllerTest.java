@@ -478,7 +478,7 @@ public class GuideControllerTest {
         void shouldFailWhenGuideNotFound() throws Exception {
             mockMvc.perform(post("/api/guides/{guideId}/users/{userId}", 9999, regularUser.getId())
                 .with(csrf()))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
         }
 
         @Test
@@ -487,7 +487,7 @@ public class GuideControllerTest {
         void shouldFailWhenUserNotFound() throws Exception {
             mockMvc.perform(post("/api/guides/{guideId}/users/{userId}", testGuide.getId(), 9999)
                 .with(csrf()))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
         }
 
         @Test
@@ -530,7 +530,7 @@ public class GuideControllerTest {
         void shouldFailWhenGuideNotFound() throws Exception {
             mockMvc.perform(delete("/api/guides/{guideId}/users/{userId}", 9999, regularUser.getId())
                 .with(csrf()))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
         }
 
         @Test
@@ -539,7 +539,7 @@ public class GuideControllerTest {
         void shouldFailWhenUserNotFound() throws Exception {
             mockMvc.perform(delete("/api/guides/{guideId}/users/{userId}", testGuide.getId(), 9999)
                 .with(csrf()))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
         }
 
         @Test

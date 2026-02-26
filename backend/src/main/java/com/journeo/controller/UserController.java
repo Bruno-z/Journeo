@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import jakarta.validation.Valid;
+import com.journeo.exception.ResourceNotFoundException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.http.ResponseEntity;
@@ -84,7 +85,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
         User user = userService.findById(id);
-        if (user == null) return ResponseEntity.notFound().build();
+        if (user == null) throw new ResourceNotFoundException("User not found with id: " + id);
         return ResponseEntity.ok(userService.toDTO(user));
     }
 
@@ -93,8 +94,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         User user = userService.findById(id);
-        if (user == null) return ResponseEntity.notFound().build();
-
+        if (user == null) throw new ResourceNotFoundException("User not found with id: " + id);
         userService.deleteUser(user);
         return ResponseEntity.ok().build();
     }
@@ -108,8 +108,7 @@ public class UserController {
             @Valid @RequestBody UserRequestDTO dto
     ) {
         User updated = userService.updateUser(id, dto);
-        if (updated == null) return ResponseEntity.notFound().build();
-
+        if (updated == null) throw new ResourceNotFoundException("User not found with id: " + id);
         return ResponseEntity.ok(userService.toDTO(updated));
     }
 
@@ -119,7 +118,7 @@ public class UserController {
     @Operation(summary = "Récupérer les guides assignés à l'utilisateur")
     public ResponseEntity<List<GuideResponseDTO>> getUserGuides(@PathVariable Long userId) {
         User user = userService.findById(userId);
-        if (user == null) return ResponseEntity.notFound().build();
+        if (user == null) throw new ResourceNotFoundException("User not found with id: " + userId);
 
         List<GuideResponseDTO> guides = user.getGuides()
                 .stream()
