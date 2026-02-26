@@ -1,5 +1,6 @@
 package com.journeo.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.journeo.model.User;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotBlank;
@@ -10,8 +11,6 @@ public class UserRequestDTO {
     @NotBlank(message = "Email cannot be empty")
     private String email;
 
-    @NotNull(message = "Password cannot be null")
-    @NotBlank(message = "Password cannot be empty")
     private String password;
 
     @NotNull(message = "Role cannot be null")
@@ -29,6 +28,7 @@ public class UserRequestDTO {
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 
+    @JsonIgnore
     public User.Role getRoleEnum() {
         return User.Role.valueOf(role.toUpperCase());
     }
