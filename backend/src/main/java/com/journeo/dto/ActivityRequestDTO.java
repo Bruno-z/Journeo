@@ -29,6 +29,9 @@ public class ActivityRequestDTO {
     @Min(value = 1, message = "Le jour doit être d'au moins 1")
     private int jour;
 
+    private Double latitude;
+    private Double longitude;
+
     public String getTitre() { return titre; }
     public void setTitre(String titre) { this.titre = titre; }
     public String getDescription() { return description; }
@@ -49,4 +52,8 @@ public class ActivityRequestDTO {
     public void setOrdre(int ordre) { this.ordre = ordre; }
     public int getJour() { return jour; }
     public void setJour(int jour) { this.jour = jour; }
+    public Double getLatitude() { return latitude; }
+    public void setLatitude(Double latitude) { this.latitude = latitude; }
+    public Double getLongitude() { return longitude; }
+    public void setLongitude(Double longitude) { this.longitude = longitude; }
 }
