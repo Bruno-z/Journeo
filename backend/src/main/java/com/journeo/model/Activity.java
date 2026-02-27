@@ -28,6 +28,8 @@ public class Activity {
     private int duree;
     private int ordre;
     private int jour;
+    private Double latitude;
+    private Double longitude;
 
     @ManyToOne
     @JoinColumn(name = "guide_id")
@@ -62,6 +64,10 @@ public class Activity {
     public void setOrdre(int ordre) { this.ordre = ordre; }
     public int getJour() { return jour; }
     public void setJour(int jour) { this.jour = jour; }
+    public Double getLatitude() { return latitude; }
+    public void setLatitude(Double latitude) { this.latitude = latitude; }
+    public Double getLongitude() { return longitude; }
+    public void setLongitude(Double longitude) { this.longitude = longitude; }
     public Guide getGuide() { return guide; }
     public void setGuide(Guide guide) { this.guide = guide; }
 
