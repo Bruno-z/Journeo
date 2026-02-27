@@ -1,0 +1,102 @@
+<div class="home">
+  <div class="home__welcome">
+    <div>
+      <h1 class="home__title">
+        Bonjour
+        @if (auth.email()) {
+          <span class="home__name"> {{ auth.email()!.split('@')[0] }}</span>
+        }
+      </h1>
+      <p class="home__subtitle">Bienvenue sur votre tableau de bord Journeo</p>
+    </div>
+    @if (auth.isAdmin()) {
+      <a routerLink="/dashboard/guides/new" class="btn btn--primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nouveau guide
+      </a>
+    }
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-card__icon stat-card__icon--guides" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+        </svg>
+      </div>
+      <div class="stat-card__body">
+        @if (loading()) {
+          <div class="stat-card__value">—</div>
+        } @else {
+          <div class="stat-card__value">{{ guideCount() }}</div>
+        }
+        <div class="stat-card__label">{{ auth.isAdmin() ? 'Guides totaux' : 'Guides assignés' }}</div>
+      </div>
+    </div>
+
+    @if (auth.isAdmin()) {
+      <div class="stat-card">
+        <div class="stat-card__icon stat-card__icon--users" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/>
+          </svg>
+        </div>
+        <div class="stat-card__body">
+          <div class="stat-card__value">{{ userCount() }}</div>
+          <div class="stat-card__label">Utilisateurs</div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Recent Guides -->
+  <section class="home__section" aria-labelledby="recent-heading">
+    <div class="home__section-header">
+      <h2 id="recent-heading" class="home__section-title">Guides récents</h2>
+      <a routerLink="/dashboard/guides" class="home__see-all">Voir tous</a>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-container">
+        <span class="spinner spinner--dark" aria-label="Chargement"></span>
+        Chargement…
+      </div>
+    } @else if (recentGuides().length === 0) {
+      <div class="empty-state">
+        <div class="empty-state__icon" aria-hidden="true">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+          </svg>
+        </div>
+        <p class="empty-state__title">Aucun guide disponible</p>
+        @if (auth.isAdmin()) {
+          <a routerLink="/dashboard/guides/new" class="btn btn--primary">Créer un guide</a>
+        }
+      </div>
+    } @else {
+      <div class="guide-grid">
+        @for (guide of recentGuides(); track guide.id) {
+          <a routerLink="/dashboard/guides/{{ guide.id }}" class="guide-card">
+            <div class="guide-card__header">
+              <h3 class="guide-card__title">{{ guide.titre }}</h3>
+              <span class="badge badge--primary">{{ guide.jours }}j</span>
+            </div>
+            @if (guide.description) {
+              <p class="guide-card__desc">{{ guide.description }}</p>
+            }
+            <div class="guide-card__meta">
+              <span class="guide-card__tag">{{ guide.mobilite }}</span>
+              <span class="guide-card__tag">{{ guide.saison }}</span>
+              <span class="guide-card__tag">{{ guide.pourQui }}</span>
+            </div>
+          </a>
+        }
+      </div>
+    }
+  </section>
+</div>
