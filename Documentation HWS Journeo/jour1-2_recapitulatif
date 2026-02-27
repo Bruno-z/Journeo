@@ -1,0 +1,47 @@
+# Compte rendu d’avancement — Projet Journeo
+
+**Période :** Jour 1 à Jour 1,5
+
+---
+
+## 1. Contexte et objectif du projet
+
+Le projet **Journeo** vise le développement d’une application **backend** basée sur **Spring Boot**.
+
+L’architecture repose sur :
+
+- Une API REST sécurisée
+- Une base de données PostgreSQL
+- Une configuration Docker pour la conteneurisation
+- Une documentation via Swagger
+
+### Objectifs de cette première phase
+
+- Mettre en place l’architecture technique
+- Configurer la base de données
+- Implémenter l’authentification
+- Tester les endpoints
+
+---
+
+## 2. Mise en place technique
+
+### 2.1 Initialisation du backend
+
+- Création du projet Spring Boot
+- Structuration des packages :
+  - `model`
+  - `repository`
+  - `config`
+- Création de la classe principale `BackendApplication`
+
+---
+
+### 2.2 Base de données
+
+- Mise en place d’un conteneur PostgreSQL via **Docker Compose**
+- Configuration des variables d’environnement
+- Paramétrage Hibernate :
+
+  ```properties
+  ddl-auto=update
