@@ -1,17 +1,17 @@
-version: '3.9'  # Version du format docker-compose
+version: '3.9'
 
 services:
   db:
-    image: postgres:15  # Utilise l'image officielle PostgreSQL version 15
-    container_name: journeo-db  # Nom du container
-    environment:  # Variables d'environnement pour configurer la base
-      POSTGRES_DB: journeo  # Nom de la base de données
-      POSTGRES_USER: ${DB_USER:-postgres}  # Utilisateur DB (ou variable d'environnement DB_USER)
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}  # Mot de passe DB (ou variable d'environnement DB_PASSWORD)
+    image: postgres:15
+    container_name: journeo-db
+    environment:
+      POSTGRES_DB: journeo
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
     ports:
-      - "5432:5432"  # Expose le port PostgreSQL sur l'hôte
+      - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data  # Persistance des données
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d journeo"]
       interval: 5s
@@ -20,29 +20,18 @@ services:
       start_period: 10s
 
   backend:
-    build: ./backend  # Build l'image Docker depuis le dossier backend
+    build: ./backend
     container_name: journeo-backend
     ports:
-      - "8080:8080"  # Expose Tomcat / Spring Boot sur le port 8080
+      - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/journeo  # URL de connexion à PostgreSQL
-      SPRING_DATASOURCE_USERNAME: ${DB_USER:-postgres}  # Nom d'utilisateur DB pour Spring
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}  # Mot de passe DB pour Spring
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update  # Hibernate crée/maj les tables automatiquement
-      SPRING_PROFILES_ACTIVE: dev  # Profil Spring actif
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/journeo
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
+      SPRING_PROFILES_ACTIVE: dev
     depends_on:
       db:
-        condition: service_healthy  # Le backend attend que PostgreSQL soit réellement prêt
-
-  # Pour le moment, on commente le frontend car il n'y a pas encore d'application Angular
-  # frontend:
-  #   build: ./frontend
-  #   container_name: journeo-frontend
-  #   ports:
-  #     - "4200:4200"
-  #   depends_on:
-  #     - backend
-  #   command: npm start  # Lance Angular
+        condition: service_healthy
 
 volumes:
-  pgdata:  # Volume Docker pour stocker les données PostgreSQL
+  pgdata:

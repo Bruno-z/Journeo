@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout -b fix/backend-setup)",
+      "Bash(git add docker-compose.yml backend/Dockerfile backend/pom.xml backend/src/main/resources/application.properties backend/src/main/java/com/journeo/BackendApplication.java backend/src/main/java/com/journeo/config/DataLoader.java backend/src/main/java/com/journeo/config/SecurityConfig.java)",
+      "Bash(git rm .gitinore.txt docker-compose.yml.txt backend/src/main/java/com/journeo/backend/BackendApplication.java backend/src/test/java/backend/BackendApplicationTests.java)",
+      "Bash(git add backend/src/test/java/com/ backend/src/test/resources/)",
+      "Bash(git commit:*)",
+      "Bash(git push -u origin frontend/init)",
+      "Bash(./mvnw test -Dspring.profiles.active=test)",
+      "Bash(git checkout -b fix/controller-tests-auth)",
+      "Bash(git add backend/src/test/java/com/journeo/controller/GuideControllerTest.java)",
+      "Bash(git push -u origin fix/controller-tests-auth)",
+      "Bash(git checkout main)",
+      "Bash(git merge origin/fix/controller-tests-auth --no-edit)",
+      "Bash(git push origin main)",
+      "Bash(./mvnw test -q)",
+      "Bash(./mvnw test)",
+      "Bash(git checkout -b feat/jwt-authentication)",
+      "Bash(git add backend/pom.xml backend/src/main/java/com/journeo/config/SecurityConfig.java backend/src/main/java/com/journeo/config/CustomUserDetailsService.java backend/src/main/java/com/journeo/config/JwtUtil.java backend/src/main/java/com/journeo/config/JwtAuthenticationFilter.java backend/src/main/java/com/journeo/dto/LoginRequestDTO.java backend/src/main/java/com/journeo/dto/LoginResponseDTO.java backend/src/main/java/com/journeo/controller/AuthController.java backend/src/main/resources/application.properties backend/src/test/resources/application-test.properties backend/src/main/java/com/journeo/controller/UserController.java backend/src/main/java/com/journeo/controller/GuideController.java backend/src/main/java/com/journeo/repository/GuideRepository.java backend/src/main/java/com/journeo/service/GuideService.java backend/src/main/java/com/journeo/service/UserService.java backend/src/test/java/com/journeo/controller/GuideControllerTest.java)",
+      "Bash(git push origin feat/jwt-authentication)",
+      "Bash(git merge:*)",
+      "Bash(git pull origin main --no-rebase)",
+      "Bash(npm run build)",
+      "Bash(./mvnw test -Dtest=\"GuideRepositoryTest\")"
+    ]
+  }
+}

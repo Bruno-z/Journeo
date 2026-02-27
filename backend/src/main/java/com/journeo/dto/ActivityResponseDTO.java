@@ -15,6 +15,8 @@ public class ActivityResponseDTO {
     private int duree;
     private int ordre;
     private int jour;
+    private Double latitude;
+    private Double longitude;
 
     public ActivityResponseDTO(Activity activity) {
         this.id = activity.getId();
@@ -28,6 +30,8 @@ public class ActivityResponseDTO {
         this.duree = activity.getDuree();
         this.ordre = activity.getOrdre();
         this.jour = activity.getJour();
+        this.latitude = activity.getLatitude();
+        this.longitude = activity.getLongitude();
     }
 
     // Getters
@@ -42,4 +46,6 @@ public class ActivityResponseDTO {
     public int getDuree() { return duree; }
     public int getOrdre() { return ordre; }
     public int getJour() { return jour; }
+    public Double getLatitude() { return latitude; }
+    public Double getLongitude() { return longitude; }
 }

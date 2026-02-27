@@ -1,0 +1,55 @@
+<div class="profile">
+  <h1 class="page-header__title" style="margin-bottom:2rem">Mon profil</h1>
+
+  <!-- Identity card -->
+  <div class="card profile__card">
+    <div class="card__body">
+      <div class="profile__identity">
+        <div class="profile__avatar" aria-hidden="true">
+          {{ (auth.email() ?? 'U')[0].toUpperCase() }}
+        </div>
+        <div class="profile__info">
+          <p class="profile__email">{{ auth.email() }}</p>
+          <span [class]="'badge badge--' + (auth.isAdmin() ? 'primary' : 'neutral')">
+            {{ auth.role() }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account details -->
+  <div class="card profile__section-card">
+    <div class="card__header">
+      <h2 class="profile__section-title">Informations du compte</h2>
+    </div>
+    <div class="card__body">
+      <dl class="profile__details">
+        <div class="profile__detail-item">
+          <dt class="profile__detail-label">Email</dt>
+          <dd class="profile__detail-value">{{ auth.email() }}</dd>
+        </div>
+        <div class="profile__detail-item">
+          <dt class="profile__detail-label">Rôle</dt>
+          <dd class="profile__detail-value">{{ auth.role() }}</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <!-- Danger zone -->
+  <div class="card profile__section-card profile__danger-zone">
+    <div class="card__header">
+      <h2 class="profile__section-title">Zone dangereuse</h2>
+    </div>
+    <div class="card__body">
+      <div class="danger-row">
+        <div>
+          <p class="font-medium">Se déconnecter</p>
+          <p class="text-muted text-sm">Vous serez redirigé vers la page de connexion</p>
+        </div>
+        <button class="btn btn--danger" (click)="logout()">Se déconnecter</button>
+      </div>
+    </div>
+  </div>
+</div>

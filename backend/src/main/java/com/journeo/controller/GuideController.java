@@ -5,15 +5,12 @@ import com.journeo.dto.GuideResponseDTO;
 import com.journeo.exception.ResourceNotFoundException;
 import com.journeo.model.Guide;
 import com.journeo.model.User;
+import com.journeo.service.CommentService;
 import com.journeo.service.GuideService;
 import com.journeo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/guides")
@@ -29,30 +27,32 @@ public class GuideController {
 
     private final GuideService guideService;
     private final UserService userService;
+    private final CommentService commentService;
 
-    public GuideController(GuideService guideService, UserService userService) {
+    public GuideController(GuideService guideService, UserService userService, CommentService commentService) {
         this.guideService = guideService;
         this.userService = userService;
+        this.commentService = commentService;
+    }
+
+    private GuideResponseDTO toDTO(Guide guide) {
+        GuideResponseDTO dto = new GuideResponseDTO(guide);
+        dto.setAverageRating(commentService.getAverageRating(guide.getId()));
+        return dto;
     }
 
     @GetMapping
-    public Page<GuideResponseDTO> getAllGuides(
-            Authentication authentication,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "titre") String sortBy) {
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+    public List<GuideResponseDTO> getAllGuides(Authentication authentication) {
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (isAdmin) {
-            return guideService.findAll(pageable).map(GuideResponseDTO::new);
+            return guideService.findAll().stream().map(this::toDTO).toList();
         }
 
         User user = userService.findByEmail(authentication.getName());
-        if (user == null) return Page.empty(pageable);
-        return guideService.findByUserId(user.getId(), pageable).map(GuideResponseDTO::new);
+        if (user == null) return List.of();
+        return guideService.findByUserId(user.getId()).stream().map(this::toDTO).toList();
     }
 
     @PostMapping
@@ -76,7 +76,7 @@ public class GuideController {
                 .buildAndExpand(saved.getId())
                 .toUri();
 
-        return ResponseEntity.created(location).body(new GuideResponseDTO(saved));
+        return ResponseEntity.created(location).body(toDTO(saved));
     }
 
     @GetMapping("/{id}")
@@ -86,13 +86,13 @@ public class GuideController {
 
         boolean isAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        if (isAdmin) return ResponseEntity.ok(new GuideResponseDTO(guide));
+        if (isAdmin) return ResponseEntity.ok(toDTO(guide));
 
         User user = userService.findByEmail(authentication.getName());
         if (user == null || guide.getUsers().stream().noneMatch(u -> u.getId().equals(user.getId()))) {
             return ResponseEntity.status(403).build();
         }
-        return ResponseEntity.ok(new GuideResponseDTO(guide));
+        return ResponseEntity.ok(toDTO(guide));
     }
 
     @DeleteMapping("/{id}")
@@ -110,7 +110,7 @@ public class GuideController {
     public ResponseEntity<GuideResponseDTO> updateGuide(@PathVariable Long id, @Valid @RequestBody GuideRequestDTO dto) {
         Guide updated = guideService.update(id, dto);
         if (updated == null) throw new ResourceNotFoundException("Guide not found with id: " + id);
-        return ResponseEntity.ok(new GuideResponseDTO(updated));
+        return ResponseEntity.ok(toDTO(updated));
     }
 
     @PostMapping("/{guideId}/users/{userId}")
@@ -119,7 +119,7 @@ public class GuideController {
     public ResponseEntity<GuideResponseDTO> addUserToGuide(@PathVariable Long guideId, @PathVariable Long userId) {
         Guide updated = guideService.addUserToGuide(guideId, userId);
         if (updated == null) throw new ResourceNotFoundException("Guide or User not found");
-        return ResponseEntity.ok(new GuideResponseDTO(updated));
+        return ResponseEntity.ok(toDTO(updated));
     }
 
     @DeleteMapping("/{guideId}/users/{userId}")
@@ -128,6 +128,6 @@ public class GuideController {
     public ResponseEntity<GuideResponseDTO> removeUserFromGuide(@PathVariable Long guideId, @PathVariable Long userId) {
         Guide updated = guideService.removeUserFromGuide(guideId, userId);
         if (updated == null) throw new ResourceNotFoundException("Guide or User not found");
-        return ResponseEntity.ok(new GuideResponseDTO(updated));
+        return ResponseEntity.ok(toDTO(updated));
     }
 }
