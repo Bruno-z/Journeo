@@ -72,17 +72,18 @@ public class UserControllerTest {
         return dto;
     }
 
-    private UserRequestDTO buildUpdateDTO(String email, String role) {
+    private UserRequestDTO buildUpdateDTO(String email, String role, String password) {
         UserRequestDTO dto = new UserRequestDTO();
         dto.setEmail(email);
         dto.setRole(role);
+        dto.setPassword(password); // mot de passe optionnel pour update
         return dto;
     }
 
+    // -------------------------- Ping Tests --------------------------
     @Nested
     @DisplayName("GET /api/users/ping")
     class PingTests {
-
         @Test
         @DisplayName("Should return pong without authentication")
         void shouldReturnPong() throws Exception {
@@ -91,10 +92,10 @@ public class UserControllerTest {
         }
     }
 
+    // -------------------------- List Users Tests --------------------------
     @Nested
     @DisplayName("GET /api/users - List all users")
     class GetAllUsersTests {
-
         @Test
         @DisplayName("Should return all users as ADMIN")
         @WithMockUser(roles = "ADMIN")
@@ -122,10 +123,10 @@ public class UserControllerTest {
         }
     }
 
+    // -------------------------- Get User By ID Tests --------------------------
     @Nested
     @DisplayName("GET /api/users/{id} - Get user by ID")
     class GetUserByIdTests {
-
         @Test
         @DisplayName("Should return user when found as ADMIN")
         @WithMockUser(roles = "ADMIN")
@@ -160,10 +161,10 @@ public class UserControllerTest {
         }
     }
 
+    // -------------------------- Create User Tests --------------------------
     @Nested
     @DisplayName("POST /api/users - Create user")
     class CreateUserTests {
-
         @Test
         @DisplayName("Should create user successfully without authentication")
         void shouldCreateUserSuccessfully() throws Exception {
@@ -246,6 +247,7 @@ public class UserControllerTest {
         }
     }
 
+    // -------------------------- Update User Tests --------------------------
     @Nested
     @DisplayName("PUT /api/users/{id} - Update user")
     class UpdateUserTests {
@@ -254,7 +256,7 @@ public class UserControllerTest {
         @DisplayName("Should update user successfully as ADMIN")
         @WithMockUser(roles = "ADMIN")
         void shouldUpdateUserSuccessfully() throws Exception {
-            UserRequestDTO dto = buildUpdateDTO("updated@test.com", "USER");
+            UserRequestDTO dto = buildUpdateDTO("updated@test.com", "USER", null);
 
             mockMvc.perform(put("/api/users/{id}", testUser.getId())
                 .with(csrf())
@@ -270,7 +272,7 @@ public class UserControllerTest {
         @DisplayName("Should update role successfully")
         @WithMockUser(roles = "ADMIN")
         void shouldUpdateRoleSuccessfully() throws Exception {
-            UserRequestDTO dto = buildUpdateDTO("user@test.com", "ADMIN");
+            UserRequestDTO dto = buildUpdateDTO("user@test.com", "ADMIN", null);
 
             mockMvc.perform(put("/api/users/{id}", testUser.getId())
                 .with(csrf())
@@ -284,7 +286,7 @@ public class UserControllerTest {
         @DisplayName("Should return 409 when email already taken")
         @WithMockUser(roles = "ADMIN")
         void shouldReturn409WhenEmailAlreadyTaken() throws Exception {
-            UserRequestDTO dto = buildUpdateDTO("admin@test.com", "USER");
+            UserRequestDTO dto = buildUpdateDTO("admin@test.com", "USER", null);
 
             mockMvc.perform(put("/api/users/{id}", testUser.getId())
                 .with(csrf())
@@ -297,7 +299,7 @@ public class UserControllerTest {
         @DisplayName("Should return 403 for USER role")
         @WithMockUser(roles = "USER")
         void shouldReturn403ForUserRole() throws Exception {
-            UserRequestDTO dto = buildUpdateDTO("updated@test.com", "USER");
+            UserRequestDTO dto = buildUpdateDTO("updated@test.com", "USER", null);
 
             mockMvc.perform(put("/api/users/{id}", testUser.getId())
                 .with(csrf())
@@ -310,7 +312,7 @@ public class UserControllerTest {
         @DisplayName("Should return 404 when user not found")
         @WithMockUser(roles = "ADMIN")
         void shouldReturn404WhenNotFound() throws Exception {
-            UserRequestDTO dto = buildUpdateDTO("updated@test.com", "USER");
+            UserRequestDTO dto = buildUpdateDTO("updated@test.com", "USER", null);
 
             mockMvc.perform(put("/api/users/9999")
                 .with(csrf())
@@ -320,10 +322,10 @@ public class UserControllerTest {
         }
     }
 
+    // -------------------------- Delete User Tests --------------------------
     @Nested
     @DisplayName("DELETE /api/users/{id} - Delete user")
     class DeleteUserTests {
-
         @Test
         @DisplayName("Should delete user successfully as ADMIN")
         @WithMockUser(roles = "ADMIN")
@@ -338,8 +340,8 @@ public class UserControllerTest {
         @Test
         @DisplayName("Should return 404 when user not found")
         @WithMockUser(roles = "ADMIN")
-        void shouldReturn404WhenNotFound() throws Exception {
-            mockMvc.perform(delete("/api/users/9999")
+        void shouldReturn404WhenUserNotFound() throws Exception {
+            mockMvc.perform(delete("/api/users/{id}", 9999)
                 .with(csrf()))
                 .andExpect(status().isNotFound());
         }
@@ -362,18 +364,16 @@ public class UserControllerTest {
         }
     }
 
+    // -------------------------- Get User Guides Tests --------------------------
     @Nested
     @DisplayName("GET /api/users/{userId}/guides - Get user guides")
     class GetUserGuidesTests {
-
         @Test
         @DisplayName("Should return guides assigned to user as ADMIN")
         @WithMockUser(roles = "ADMIN")
         void shouldReturnUserGuides() throws Exception {
-            Guide guide = new Guide(
-                "Paris Tour", "Beautiful Paris", 3,
-                Guide.Mobilite.A_PIED, Guide.Saison.ETE, Guide.PublicCible.FAMILLE
-            );
+            Guide guide = new Guide("Paris Tour", "Beautiful Paris", 3,
+                    Guide.Mobilite.A_PIED, Guide.Saison.ETE, Guide.PublicCible.FAMILLE);
             guide.addUser(testUser);
             guideRepository.save(guide);
 
