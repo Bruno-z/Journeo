@@ -16,6 +16,7 @@ public class GuideResponseDTO {
     private Guide.PublicCible pourQui;
     private List<ActivityResponseDTO> activities;
     private List<UserResponseDTO> users;
+    private Double averageRating;
 
     public GuideResponseDTO(Guide guide) {
         this.id = guide.getId();
@@ -45,4 +46,6 @@ public class GuideResponseDTO {
     public Guide.PublicCible getPourQui() { return pourQui; }
     public List<ActivityResponseDTO> getActivities() { return activities; }
     public List<UserResponseDTO> getUsers() { return users; }
+    public Double getAverageRating() { return averageRating; }
+    public void setAverageRating(Double averageRating) { this.averageRating = averageRating; }
 }
