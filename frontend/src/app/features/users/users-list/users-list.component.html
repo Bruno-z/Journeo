@@ -1,0 +1,78 @@
+<div class="page-header">
+  <h1 class="page-header__title">Utilisateurs</h1>
+  <div class="page-header__actions">
+    <a routerLink="/auth/register" class="btn btn--primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nouvel utilisateur
+    </a>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="alert alert--error" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <div class="loading-container">
+    <span class="spinner spinner--dark" aria-label="Chargement"></span>
+    Chargement…
+  </div>
+} @else if (users().length === 0) {
+  <div class="empty-state">
+    <div class="empty-state__icon" aria-hidden="true">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/>
+      </svg>
+    </div>
+    <p class="empty-state__title">Aucun utilisateur</p>
+    <a routerLink="/auth/register" class="btn btn--primary">Créer un utilisateur</a>
+  </div>
+} @else {
+  <div class="table-wrapper">
+    <table class="table" aria-label="Liste des utilisateurs">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Email</th>
+          <th scope="col">Rôle</th>
+          <th scope="col"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of users(); track user.id) {
+          <tr>
+            <td class="text-muted text-sm">{{ user.id }}</td>
+            <td>
+              <div class="user-cell">
+                <div class="user-avatar" aria-hidden="true">{{ user.email[0].toUpperCase() }}</div>
+                {{ user.email }}
+              </div>
+            </td>
+            <td>
+              <span [class]="'badge badge--' + (user.role === 'ADMIN' ? 'primary' : 'neutral')">
+                {{ user.role }}
+              </span>
+            </td>
+            <td>
+              <div class="row-actions">
+                <button
+                  class="btn btn--danger btn--sm"
+                  (click)="delete(user)"
+                  [disabled]="deleting() === user.id"
+                  [attr.aria-label]="'Supprimer ' + user.email"
+                >
+                  @if (deleting() === user.id) { <span class="spinner" aria-hidden="true"></span> }
+                  Supprimer
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

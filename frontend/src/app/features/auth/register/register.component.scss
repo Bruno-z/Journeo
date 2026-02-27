@@ -1,0 +1,52 @@
+// Shared with login — styles defined globally in login.component.scss pattern
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fff3ee 0%, #fdf8f5 100%);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+
+  &__icon { flex-shrink: 0; }
+  &__name { font-size: 1.375rem; font-weight: 700; color: var(--color-text); }
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.375rem;
+}
+
+.auth-subtitle {
+  color: var(--color-text-muted);
+  margin-bottom: 1.75rem;
+  font-size: 0.9375rem;
+}
+
+.auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.auth-link {
+  color: var(--color-primary);
+  font-weight: 500;
+}

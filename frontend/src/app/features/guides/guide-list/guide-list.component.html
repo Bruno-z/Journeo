@@ -1,0 +1,96 @@
+<div class="page-header">
+  <h1 class="page-header__title">Guides</h1>
+  <div class="page-header__actions">
+    <div class="search-box">
+      <svg class="search-box__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+      </svg>
+      <input
+        type="search"
+        class="search-box__input"
+        placeholder="Rechercher un guide…"
+        [value]="search()"
+        (input)="updateSearch($any($event.target).value)"
+        aria-label="Rechercher un guide"
+      />
+    </div>
+    @if (auth.isAdmin()) {
+      <a routerLink="/dashboard/guides/new" class="btn btn--primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nouveau
+      </a>
+    }
+  </div>
+</div>
+
+@if (error()) {
+  <div class="alert alert--error" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <div class="loading-container">
+    <span class="spinner spinner--dark" aria-label="Chargement des guides"></span>
+    Chargement…
+  </div>
+} @else if (filtered().length === 0) {
+  <div class="empty-state">
+    <div class="empty-state__icon" aria-hidden="true">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+      </svg>
+    </div>
+    <p class="empty-state__title">
+      @if (search()) { Aucun résultat pour "{{ search() }}" } @else { Aucun guide disponible }
+    </p>
+    @if (auth.isAdmin() && !search()) {
+      <a routerLink="/dashboard/guides/new" class="btn btn--primary">Créer un guide</a>
+    }
+  </div>
+} @else {
+  <div class="guides-grid">
+    @for (guide of filtered(); track guide.id) {
+      <article class="guide-card">
+        <div class="guide-card__header">
+          <div>
+            <h2 class="guide-card__title">{{ guide.titre }}</h2>
+            @if (guide.description) {
+              <p class="guide-card__desc">{{ guide.description }}</p>
+            }
+          </div>
+          <span class="badge badge--primary guide-card__days">{{ guide.jours }}j</span>
+        </div>
+
+        <div class="guide-card__badges">
+          <span class="badge badge--neutral">{{ mobiliteLabels[guide.mobilite] }}</span>
+          <span class="badge badge--info">{{ saisonLabels[guide.saison] }}</span>
+          <span class="badge badge--success">{{ publicCibleLabels[guide.pourQui] }}</span>
+          @if (guide.activities?.length) {
+            <span class="badge badge--warning">{{ guide.activities.length }} activité{{ guide.activities.length > 1 ? 's' : '' }}</span>
+          }
+        </div>
+
+        <div class="guide-card__actions">
+          <a routerLink="/dashboard/guides/{{ guide.id }}" class="btn btn--ghost btn--sm">
+            Voir le détail
+          </a>
+          @if (auth.isAdmin()) {
+            <a routerLink="/dashboard/guides/{{ guide.id }}/edit" class="btn btn--secondary btn--sm">
+              Modifier
+            </a>
+            <button
+              class="btn btn--danger btn--sm"
+              (click)="delete(guide)"
+              [disabled]="deleting() === guide.id"
+              [attr.aria-label]="'Supprimer ' + guide.titre"
+            >
+              @if (deleting() === guide.id) { <span class="spinner" aria-hidden="true"></span> }
+              Supprimer
+            </button>
+          }
+        </div>
+      </article>
+    }
+  </div>
+}
