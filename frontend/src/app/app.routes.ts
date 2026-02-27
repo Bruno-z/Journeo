@@ -1,9 +1,18 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { publicGuard } from './core/guards/public.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+  // Landing page publique
+  {
+    path: '',
+    loadComponent: () =>
+      import('./features/landing-page/landing-page.component').then(
+        m => m.LandingPageComponent
+      ),
+    canActivate: [publicGuard], // redirige vers dashboard si déjà connecté
+  },
 
   {
     path: 'auth',
@@ -84,5 +93,6 @@ export const routes: Routes = [
     ],
   },
 
-  { path: '**', redirectTo: '/auth/login' },
+  // Catch-all
+  //{ path: '**', redirectTo: '/auth/login' },
 ];
