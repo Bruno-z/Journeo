@@ -5,17 +5,16 @@ import com.journeo.dto.UserResponseDTO;
 import com.journeo.dto.GuideResponseDTO;
 import com.journeo.model.User;
 import com.journeo.service.UserService;
+import com.journeo.exception.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import jakarta.validation.Valid;
-import com.journeo.exception.ResourceNotFoundException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -29,17 +28,15 @@ public class UserController {
 
     private final UserService userService;
 
-    public UserController(UserService userService) { 
-        this.userService = userService; 
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
-    // 🔹 Ping simple pour tester que l'API fonctionne
     @GetMapping("/ping")
-    public String ping() { 
-        return "pong"; 
+    public String ping() {
+        return "pong";
     }
 
-    // 🔹 Récupérer tous les utilisateurs
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponseDTO> getAllUsers() {
@@ -64,10 +61,11 @@ public class UserController {
             )
         )
     )
-    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserRequestDTO dto) {
+    public ResponseEntity<UserResponseDTO> createUser(
+        @Validated(UserRequestDTO.OnCreate.class) @RequestBody UserRequestDTO dto
+    ) {
         User saved = userService.createUser(dto);
 
-        // 🔹 Construction de l'URL du nouvel utilisateur
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(saved.getId())
@@ -76,7 +74,19 @@ public class UserController {
         return ResponseEntity.created(location).body(userService.toDTO(saved));
     }
 
-    // 🔹 Récupérer un utilisateur par ID
+    // 🔹 Mettre à jour un utilisateur
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Mettre à jour un utilisateur existant")
+    public ResponseEntity<UserResponseDTO> updateUser(
+            @PathVariable Long id,
+            @Validated(UserRequestDTO.OnUpdate.class) @RequestBody UserRequestDTO dto
+    ) {
+        User updated = userService.updateUser(id, dto);
+        if (updated == null) throw new ResourceNotFoundException("User not found with id: " + id);
+        return ResponseEntity.ok(userService.toDTO(updated));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
@@ -85,7 +95,6 @@ public class UserController {
         return ResponseEntity.ok(userService.toDTO(user));
     }
 
-    // 🔹 Supprimer un utilisateur
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
@@ -95,23 +104,8 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    // 🔹 Mettre à jour un utilisateur
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Mettre à jour un utilisateur existant")
-    public ResponseEntity<UserResponseDTO> updateUser(
-            @PathVariable Long id,
-            @Valid @RequestBody UserRequestDTO dto
-    ) {
-        User updated = userService.updateUser(id, dto);
-        if (updated == null) throw new ResourceNotFoundException("User not found with id: " + id);
-        return ResponseEntity.ok(userService.toDTO(updated));
-    }
-
-    // 🔹 Récupérer les guides assignés à un utilisateur
     @GetMapping("/{userId}/guides")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Récupérer les guides assignés à l'utilisateur")
     public ResponseEntity<List<GuideResponseDTO>> getUserGuides(@PathVariable Long userId) {
         User user = userService.findById(userId);
         if (user == null) throw new ResourceNotFoundException("User not found with id: " + userId);
@@ -119,7 +113,7 @@ public class UserController {
         List<GuideResponseDTO> guides = user.getGuides()
                 .stream()
                 .map(GuideResponseDTO::new)
-                .collect(java.util.stream.Collectors.toList());
+                .toList();
 
         return ResponseEntity.ok(guides);
     }

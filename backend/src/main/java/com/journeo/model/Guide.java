@@ -1,20 +1,12 @@
 package com.journeo.model;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@EntityListeners(AuditingEntityListener.class)
-@SQLDelete(sql = "UPDATE guide SET deleted = true WHERE id = ?")
-@SQLRestriction("deleted = false")
+@Table(name = "guides")
 public class Guide {
 
     public enum Mobilite { VOITURE, VELO, A_PIED, MOTO }
@@ -46,7 +38,7 @@ public class Guide {
     @Column(name = "pour_qui", nullable = false)
     private PublicCible pourQui;
 
-    @OneToMany(mappedBy = "guide", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "guide", cascade = {CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     private Set<Activity> activities = new HashSet<>();
 
     @ManyToMany
@@ -56,17 +48,6 @@ public class Guide {
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private Set<User> users = new HashSet<>();
-
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
-
-    @Column(nullable = false)
-    private boolean deleted = false;
 
     public Guide() {}
 
@@ -96,8 +77,6 @@ public class Guide {
     public void setActivities(Set<Activity> activities) { this.activities = activities; }
     public Set<User> getUsers() { return users; }
     public void setUsers(Set<User> users) { this.users = users; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
 
     public void addActivity(Activity activity) { activities.add(activity); activity.setGuide(this); }
     public void removeActivity(Activity activity) { activities.remove(activity); activity.setGuide(null); }

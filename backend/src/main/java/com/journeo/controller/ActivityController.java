@@ -1,5 +1,6 @@
 package com.journeo.controller;
 
+import com.journeo.dto.ActivityMapDTO;
 import com.journeo.dto.ActivityRequestDTO;
 import com.journeo.dto.ActivityResponseDTO;
 import com.journeo.model.Activity;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -63,6 +65,8 @@ public class ActivityController {
         activity.setDuree(dto.getDuree());
         activity.setOrdre(dto.getOrdre());
         activity.setJour(dto.getJour());
+        activity.setLatitude(dto.getLatitude());
+        activity.setLongitude(dto.getLongitude());
 
         Activity saved = activityService.addActivityToGuide(guideId, activity);
         if (saved == null) throw new ResourceNotFoundException("Guide not found with id: " + guideId);
@@ -94,5 +98,16 @@ public class ActivityController {
         boolean deleted = activityService.deleteActivity(activityId);
         if (!deleted) throw new ResourceNotFoundException("Activity not found with id: " + activityId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/guide/{guideId}/map")
+    @Operation(summary = "Récupérer les coordonnées GPS des activités d'un guide")
+    public ResponseEntity<List<ActivityMapDTO>> getActivitiesForMap(@PathVariable Long guideId) {
+        Set<Activity> activities = activityService.getActivitiesOfGuide(guideId);
+        if (activities == null) throw new ResourceNotFoundException("Guide not found with id: " + guideId);
+        List<ActivityMapDTO> result = activities.stream()
+                .map(ActivityMapDTO::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(result);
     }
 }
