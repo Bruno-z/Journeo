@@ -1,6 +1,7 @@
 package com.journeo.dto;
 
 import com.journeo.model.Activity;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,28 +9,44 @@ import jakarta.validation.constraints.NotNull;
 public class ActivityRequestDTO {
 
     @NotBlank(message = "Le titre est obligatoire")
+    @Schema(example = "Château du Haut-Kœnigsbourg")
     private String titre;
 
+    @Schema(example = "Forteresse médiévale restaurée dominant la plaine d'Alsace.")
     private String description;
 
     @NotNull(message = "Le type est obligatoire")
+    @Schema(example = "CHATEAU", allowableValues = {"MUSEE", "CHATEAU", "ACTIVITE", "PARC", "GROTTE"})
     private Activity.Type type;
 
+    @Schema(example = "Château du Haut-Kœnigsbourg, 67600 Orschwiller")
     private String adresse;
+
+    @Schema(example = "+33 3 88 82 50 60")
     private String telephone;
+
+    @Schema(example = "https://www.haut-koenigsbourg.fr")
     private String siteInternet;
+
+    @Schema(example = "09:00")
     private String heureDebut;
 
     @Min(value = 1, message = "La durée doit être d'au moins 1 minute")
+    @Schema(example = "120", description = "Durée en minutes")
     private int duree;
 
     @Min(value = 1, message = "L'ordre doit être d'au moins 1")
+    @Schema(example = "1", description = "Position dans la journée")
     private int ordre;
 
     @Min(value = 1, message = "Le jour doit être d'au moins 1")
+    @Schema(example = "1", description = "Numéro du jour dans le guide")
     private int jour;
 
+    @Schema(example = "48.2496")
     private Double latitude;
+
+    @Schema(example = "7.3428")
     private Double longitude;
 
     public String getTitre() { return titre; }
