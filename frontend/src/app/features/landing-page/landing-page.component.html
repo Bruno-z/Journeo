@@ -1,0 +1,22 @@
+<div class="landing-page">
+  <!-- Video background -->
+  <video autoplay muted loop playsinline class="landing-video">
+    <source src="assets/videos/travel-hero.mp4" type="video/mp4">
+    <img src="assets/images/travel-hero.jpg" alt="Paysage de voyage">
+  </video>
+
+  <!-- Overlay sombre pour texte lisible -->
+  <div class="landing-overlay"></div>
+
+  <!-- Hero content -->
+  <div class="landing-content">
+    <h1 class="landing-title">Découvrez vos prochaines aventures</h1>
+    <p class="landing-subtitle">Explorez, réservez et partez à l’aventure avec Journeo</p>
+    <button class="btn btn--primary btn--lg" (click)="openLoginModal()">
+      Se connecter / S’inscrire
+    </button>
+  </div>
+</div>
+
+<!-- Modal login -->
+<app-auth-modal #loginModal></app-auth-modal>

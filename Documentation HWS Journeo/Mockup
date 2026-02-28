@@ -1,0 +1,105 @@
+1️⃣ Structure globale du mockup
+
+Style général : moderne, épuré, couleurs neutres + accent sur le bleu/vert pour les actions principales.
+
+Format : une grande page (canvas) où chaque “page” de l’application Angular est représentée par une boîte rectangulaire.
+
+Navigation : des flèches indiquent comment l’utilisateur passe d’une page à l’autre.
+
+Logo : en haut à gauche, “Journeo” stylisé.
+
+2️⃣ Pages principales à inclure
+
+Login / Auth
+
+Email / Password
+
+Bouton “Connexion”
+
+Lien “Mot de passe oublié”
+
+Redirection vers Dashboard si succès
+
+Dashboard / Home
+
+Vue d’ensemble des guides et activités
+
+Navigation principale vers :
+
+Guide list
+
+Activity list
+
+Profil utilisateur
+
+Guide List
+
+Tableau des guides
+
+Bouton “Créer un guide”
+
+Pagination + filtre
+
+Actions : Voir / Éditer / Supprimer
+
+Guide Detail / Édition
+
+Formulaire de création / édition
+
+Champs : titre, description, catégories
+
+Boutons : Sauvegarder / Annuler
+
+Activity List
+
+Tableau des activités
+
+Bouton “Créer une activité”
+
+Pagination + filtre
+
+Actions : Voir / Éditer / Supprimer
+
+User Profile
+
+Infos personnelles
+
+Changer mot de passe
+
+Bouton “Se déconnecter”
+
+Modales / Notifications
+
+Confirmation suppression
+
+Alertes succès / erreur
+
+3️⃣ Flux de navigation
+
+Login → Dashboard
+
+Dashboard → Guide List → Guide Detail → Dashboard
+
+Dashboard → Activity List → Activity Detail → Dashboard
+
+Dashboard → Profil → Dashboard
+
+Toute action critique (supprimer, éditer) → Modal de confirmation
+
+4️⃣ Design graphique (mockup)
+
+Pour visualiser :
+
+Boxes pour chaque page
+
+Flèches entre les pages avec sens de navigation
+
+Logo en haut à gauche
+
+Couleurs :
+
+Background : #F8F9FA
+
+Primary buttons : #0D6EFD (bleu Journeo)
+
+Success / Info / Warning : #198754 / #0DCAF0 / #FFC107
