@@ -1,15 +1,15 @@
 package com.journeo.model;
 
 import jakarta.persistence.*;
-
 import java.util.HashSet;
 import java.util.Set;
+
 
 @Entity
 @Table(name = "guides")
 public class Guide {
 
-    public enum Mobilite { VOITURE, VELO, A_PIED, MOTO }
+    public enum Mobilite { VOITURE, VELO, A_PIED, MOTO, METRO, TRANSPORTS_EN_COMMUN }
     public enum Saison { ETE, PRINTEMPS, AUTOMNE, HIVER }
     public enum PublicCible { FAMILLE, SEUL, EN_GROUPE, ENTRE_AMIS }
 
@@ -49,8 +49,10 @@ public class Guide {
     )
     private Set<User> users = new HashSet<>();
 
+    // Constructeur vide
     public Guide() {}
 
+    // Constructeur complet
     public Guide(String titre, String description, int jours, Mobilite mobilite, Saison saison, PublicCible pourQui) {
         this.titre = titre;
         this.description = description;
@@ -60,6 +62,7 @@ public class Guide {
         this.pourQui = pourQui;
     }
 
+    // Getters et setters
     public Long getId() { return id; }
     public String getTitre() { return titre; }
     public void setTitre(String titre) { this.titre = titre; }
@@ -78,6 +81,7 @@ public class Guide {
     public Set<User> getUsers() { return users; }
     public void setUsers(Set<User> users) { this.users = users; }
 
+    // Relations helpers
     public void addActivity(Activity activity) { activities.add(activity); activity.setGuide(this); }
     public void removeActivity(Activity activity) { activities.remove(activity); activity.setGuide(null); }
     public void addUser(User user) { users.add(user); user.getGuides().add(this); }

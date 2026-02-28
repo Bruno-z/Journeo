@@ -9,6 +9,8 @@ public class CommentResponseDTO {
     private String content;
     private int rating;
     private String authorEmail;
+    private String authorFirstName;
+    private String authorLastName;
     private Long authorId;
     private LocalDateTime createdAt;
     private Long guideId;
@@ -18,6 +20,8 @@ public class CommentResponseDTO {
         this.content = comment.getContent();
         this.rating = comment.getRating();
         this.authorEmail = comment.getAuthor().getEmail();
+        this.authorFirstName = comment.getAuthor().getFirstName();
+        this.authorLastName = comment.getAuthor().getLastName();
         this.authorId = comment.getAuthor().getId();
         this.createdAt = comment.getCreatedAt();
         this.guideId = comment.getGuide().getId();
@@ -27,6 +31,8 @@ public class CommentResponseDTO {
     public String getContent() { return content; }
     public int getRating() { return rating; }
     public String getAuthorEmail() { return authorEmail; }
+    public String getAuthorFirstName() { return authorFirstName; }
+    public String getAuthorLastName() { return authorLastName; }
     public Long getAuthorId() { return authorId; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public Long getGuideId() { return guideId; }

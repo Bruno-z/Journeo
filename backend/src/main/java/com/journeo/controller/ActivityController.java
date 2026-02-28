@@ -1,6 +1,5 @@
 package com.journeo.controller;
 
-import com.journeo.dto.ActivityMapDTO;
 import com.journeo.dto.ActivityRequestDTO;
 import com.journeo.dto.ActivityResponseDTO;
 import com.journeo.model.Activity;
@@ -10,13 +9,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import jakarta.validation.Valid;
-import com.journeo.exception.ResourceNotFoundException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -65,11 +62,9 @@ public class ActivityController {
         activity.setDuree(dto.getDuree());
         activity.setOrdre(dto.getOrdre());
         activity.setJour(dto.getJour());
-        activity.setLatitude(dto.getLatitude());
-        activity.setLongitude(dto.getLongitude());
 
         Activity saved = activityService.addActivityToGuide(guideId, activity);
-        if (saved == null) throw new ResourceNotFoundException("Guide not found with id: " + guideId);
+        if (saved == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(new ActivityResponseDTO(saved));
     }
 
@@ -77,7 +72,7 @@ public class ActivityController {
     @Operation(summary = "Lister toutes les activités d'un guide")
     public ResponseEntity<Set<ActivityResponseDTO>> getActivities(@PathVariable Long guideId) {
         Set<Activity> activities = activityService.getActivitiesOfGuide(guideId);
-        if (activities == null) throw new ResourceNotFoundException("Guide not found with id: " + guideId);
+        if (activities == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(activities.stream().map(ActivityResponseDTO::new).collect(Collectors.toSet()));
     }
 
@@ -87,27 +82,16 @@ public class ActivityController {
     public ResponseEntity<ActivityResponseDTO> updateActivity(@PathVariable Long activityId,
                                                               @Valid @RequestBody ActivityRequestDTO dto) {
         Activity updated = activityService.updateActivity(activityId, dto);
-        if (updated == null) throw new ResourceNotFoundException("Activity not found with id: " + activityId);
+        if (updated == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(new ActivityResponseDTO(updated));
-    }
+    }   
 
     @DeleteMapping("/{activityId}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Supprimer une activité")
     public ResponseEntity<Void> deleteActivity(@PathVariable Long activityId) {
         boolean deleted = activityService.deleteActivity(activityId);
-        if (!deleted) throw new ResourceNotFoundException("Activity not found with id: " + activityId);
+        if (!deleted) return ResponseEntity.notFound().build();
         return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/guide/{guideId}/map")
-    @Operation(summary = "Récupérer les coordonnées GPS des activités d'un guide")
-    public ResponseEntity<List<ActivityMapDTO>> getActivitiesForMap(@PathVariable Long guideId) {
-        Set<Activity> activities = activityService.getActivitiesOfGuide(guideId);
-        if (activities == null) throw new ResourceNotFoundException("Guide not found with id: " + guideId);
-        List<ActivityMapDTO> result = activities.stream()
-                .map(ActivityMapDTO::new)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(result);
     }
 }
