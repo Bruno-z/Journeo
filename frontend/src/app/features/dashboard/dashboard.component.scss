@@ -15,11 +15,28 @@
   flex: 1;
   padding: 2rem;
   overflow-y: auto;
-
   display: flex;
-  justify-content: center;   // 🔥 centre horizontalement
+  flex-direction: column;
 
   @media (max-width: 768px) {
     padding: 1.25rem;
+  }
+}
+
+/* Mobile overlay (behind sidebar, above content) */
+.layout__overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 299;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+@media (max-width: 767px) {
+  .layout--sidebar-open .layout__overlay {
+    display: block;
+    opacity: 1;
   }
 }

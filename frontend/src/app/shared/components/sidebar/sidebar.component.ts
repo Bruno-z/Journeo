@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { SidebarStateService } from '../../../core/services/sidebar-state.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -11,9 +12,5 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class SidebarComponent {
   protected auth = inject(AuthService);
-  collapsed = signal(false);
-
-  toggleCollapse(): void {
-    this.collapsed.update(v => !v);
-  }
+  protected sidebarState = inject(SidebarStateService);
 }

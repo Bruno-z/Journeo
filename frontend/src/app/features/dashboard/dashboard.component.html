@@ -1,4 +1,7 @@
-<div class="layout">
+<div class="layout" [class.layout--sidebar-open]="sidebarState.isOpen()">
+  <!-- Mobile overlay (click to close sidebar) -->
+  <div class="layout__overlay" (click)="sidebarState.close()"></div>
+
   <app-sidebar />
   <div class="layout__main">
     <app-navbar />

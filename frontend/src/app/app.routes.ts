@@ -1,9 +1,15 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { publicGuard } from './core/guards/public.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+  {
+    path: '',
+    canActivate: [publicGuard],
+    loadComponent: () =>
+      import('./features/landing/landing.component').then(m => m.LandingComponent),
+  },
 
   {
     path: 'auth',
@@ -84,5 +90,5 @@ export const routes: Routes = [
     ],
   },
 
-  { path: '**', redirectTo: '/auth/login' },
+  { path: '**', redirectTo: '/' },
 ];
