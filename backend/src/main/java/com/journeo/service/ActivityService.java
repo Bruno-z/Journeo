@@ -8,7 +8,6 @@ import com.journeo.repository.ActivityRepository;
 import com.journeo.repository.GuideRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -52,6 +51,8 @@ public class ActivityService {
         activity.setDuree(dto.getDuree());
         activity.setOrdre(dto.getOrdre());
         activity.setJour(dto.getJour());
+        activity.setLatitude(dto.getLatitude());
+        activity.setLongitude(dto.getLongitude());
 
         return activityRepository.save(activity);
     }
@@ -75,7 +76,7 @@ public class ActivityService {
     // Lister toutes les activités d’un guide
     public Set<Activity> getActivitiesOfGuide(Long guideId) {
         Optional<Guide> guideOpt = guideRepository.findById(guideId);
-        if (guideOpt.isEmpty()) return new HashSet<>();
+        if (guideOpt.isEmpty()) return null;
         return guideOpt.get().getActivities();
     }
 

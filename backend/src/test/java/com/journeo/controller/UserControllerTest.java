@@ -58,8 +58,8 @@ public class UserControllerTest {
         guideRepository.deleteAll();
         userRepository.deleteAll();
 
-        testUser = new User("user@test.com", passwordEncoder.encode("password123"), User.Role.USER);
-        adminUser = new User("admin@test.com", passwordEncoder.encode("adminpass"), User.Role.ADMIN);
+        testUser = new User("user@test.com", passwordEncoder.encode("password123"), "Test", "User", User.Role.USER);
+        adminUser = new User("admin@test.com", passwordEncoder.encode("adminpass"), "Admin", "User", User.Role.ADMIN);
         userRepository.save(testUser);
         userRepository.save(adminUser);
     }
@@ -68,21 +68,22 @@ public class UserControllerTest {
         UserRequestDTO dto = new UserRequestDTO();
         dto.setEmail(email);
         dto.setPassword(password);
-        dto.setRole(role);
+        dto.setFirstName("John");
+        dto.setLastName("Doe");
         return dto;
     }
 
-    private UserRequestDTO buildUpdateDTO(String email, String role) {
+    private UserRequestDTO buildUpdateDTO(String email, String role, String password) {
         UserRequestDTO dto = new UserRequestDTO();
         dto.setEmail(email);
-        dto.setRole(role);
+        dto.setPassword(password); // mot de passe optionnel pour update
         return dto;
     }
 
+    // -------------------------- Ping Tests --------------------------
     @Nested
     @DisplayName("GET /api/users/ping")
     class PingTests {
-
         @Test
         @DisplayName("Should return pong without authentication")
         void shouldReturnPong() throws Exception {
@@ -91,10 +92,10 @@ public class UserControllerTest {
         }
     }
 
+    // -------------------------- List Users Tests --------------------------
     @Nested
     @DisplayName("GET /api/users - List all users")
     class GetAllUsersTests {
-
         @Test
         @DisplayName("Should return all users as ADMIN")
         @WithMockUser(roles = "ADMIN")
@@ -122,10 +123,10 @@ public class UserControllerTest {
         }
     }
 
+    // -------------------------- Get User By ID Tests --------------------------
     @Nested
     @DisplayName("GET /api/users/{id} - Get user by ID")
     class GetUserByIdTests {
-
         @Test
         @DisplayName("Should return user when found as ADMIN")
         @WithMockUser(roles = "ADMIN")
@@ -160,10 +161,10 @@ public class UserControllerTest {
         }
     }
 
+    // -------------------------- Create User Tests --------------------------
     @Nested
     @DisplayName("POST /api/users - Create user")
     class CreateUserTests {
-
         @Test
         @DisplayName("Should create user successfully without authentication")
         void shouldCreateUserSuccessfully() throws Exception {
@@ -176,25 +177,11 @@ public class UserControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
                 .andExpect(jsonPath("$.email", equalTo("newuser@test.com")))
-                .andExpect(jsonPath("$.role", equalTo("USER")))
                 .andReturn();
 
             String location = result.getResponse().getHeader("Location");
             assertThat(location).contains("/api/users/");
             assertThat(userRepository.findByEmail("newuser@test.com")).isPresent();
-        }
-
-        @Test
-        @DisplayName("Should create ADMIN user")
-        void shouldCreateAdminUser() throws Exception {
-            UserRequestDTO dto = buildCreateDTO("newadmin@test.com", "adminpass", "ADMIN");
-
-            mockMvc.perform(post("/api/users")
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.role", equalTo("ADMIN")));
         }
 
         @Test
@@ -220,32 +207,9 @@ public class UserControllerTest {
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest());
         }
-
-        @Test
-        @DisplayName("Should return 400 when role is blank")
-        void shouldReturn400WhenRoleIsBlank() throws Exception {
-            UserRequestDTO dto = buildCreateDTO("valid@test.com", "password123", "");
-
-            mockMvc.perform(post("/api/users")
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when role is invalid")
-        void shouldReturn400WhenRoleIsInvalid() throws Exception {
-            String invalidJson = "{\"email\":\"valid@test.com\",\"password\":\"pass123\",\"role\":\"SUPERADMIN\"}";
-
-            mockMvc.perform(post("/api/users")
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(invalidJson))
-                .andExpect(status().isBadRequest());
-        }
     }
 
+    // -------------------------- Update User Tests --------------------------
     @Nested
     @DisplayName("PUT /api/users/{id} - Update user")
     class UpdateUserTests {
@@ -254,7 +218,7 @@ public class UserControllerTest {
         @DisplayName("Should update user successfully as ADMIN")
         @WithMockUser(roles = "ADMIN")
         void shouldUpdateUserSuccessfully() throws Exception {
-            UserRequestDTO dto = buildUpdateDTO("updated@test.com", "USER");
+            UserRequestDTO dto = buildUpdateDTO("updated@test.com", "USER", null);
 
             mockMvc.perform(put("/api/users/{id}", testUser.getId())
                 .with(csrf())
@@ -267,24 +231,10 @@ public class UserControllerTest {
         }
 
         @Test
-        @DisplayName("Should update role successfully")
-        @WithMockUser(roles = "ADMIN")
-        void shouldUpdateRoleSuccessfully() throws Exception {
-            UserRequestDTO dto = buildUpdateDTO("user@test.com", "ADMIN");
-
-            mockMvc.perform(put("/api/users/{id}", testUser.getId())
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.role", equalTo("ADMIN")));
-        }
-
-        @Test
         @DisplayName("Should return 409 when email already taken")
         @WithMockUser(roles = "ADMIN")
         void shouldReturn409WhenEmailAlreadyTaken() throws Exception {
-            UserRequestDTO dto = buildUpdateDTO("admin@test.com", "USER");
+            UserRequestDTO dto = buildUpdateDTO("admin@test.com", "USER", null);
 
             mockMvc.perform(put("/api/users/{id}", testUser.getId())
                 .with(csrf())
@@ -297,7 +247,7 @@ public class UserControllerTest {
         @DisplayName("Should return 403 for USER role")
         @WithMockUser(roles = "USER")
         void shouldReturn403ForUserRole() throws Exception {
-            UserRequestDTO dto = buildUpdateDTO("updated@test.com", "USER");
+            UserRequestDTO dto = buildUpdateDTO("updated@test.com", "USER", null);
 
             mockMvc.perform(put("/api/users/{id}", testUser.getId())
                 .with(csrf())
@@ -310,7 +260,7 @@ public class UserControllerTest {
         @DisplayName("Should return 404 when user not found")
         @WithMockUser(roles = "ADMIN")
         void shouldReturn404WhenNotFound() throws Exception {
-            UserRequestDTO dto = buildUpdateDTO("updated@test.com", "USER");
+            UserRequestDTO dto = buildUpdateDTO("updated@test.com", "USER", null);
 
             mockMvc.perform(put("/api/users/9999")
                 .with(csrf())
@@ -320,10 +270,10 @@ public class UserControllerTest {
         }
     }
 
+    // -------------------------- Delete User Tests --------------------------
     @Nested
     @DisplayName("DELETE /api/users/{id} - Delete user")
     class DeleteUserTests {
-
         @Test
         @DisplayName("Should delete user successfully as ADMIN")
         @WithMockUser(roles = "ADMIN")
@@ -338,8 +288,8 @@ public class UserControllerTest {
         @Test
         @DisplayName("Should return 404 when user not found")
         @WithMockUser(roles = "ADMIN")
-        void shouldReturn404WhenNotFound() throws Exception {
-            mockMvc.perform(delete("/api/users/9999")
+        void shouldReturn404WhenUserNotFound() throws Exception {
+            mockMvc.perform(delete("/api/users/{id}", 9999)
                 .with(csrf()))
                 .andExpect(status().isNotFound());
         }
@@ -362,18 +312,16 @@ public class UserControllerTest {
         }
     }
 
+    // -------------------------- Get User Guides Tests --------------------------
     @Nested
     @DisplayName("GET /api/users/{userId}/guides - Get user guides")
     class GetUserGuidesTests {
-
         @Test
         @DisplayName("Should return guides assigned to user as ADMIN")
         @WithMockUser(roles = "ADMIN")
         void shouldReturnUserGuides() throws Exception {
-            Guide guide = new Guide(
-                "Paris Tour", "Beautiful Paris", 3,
-                Guide.Mobilite.A_PIED, Guide.Saison.ETE, Guide.PublicCible.FAMILLE
-            );
+            Guide guide = new Guide("Paris Tour", "Beautiful Paris", 3,
+                    Guide.Mobilite.A_PIED, Guide.Saison.ETE, Guide.PublicCible.FAMILLE);
             guide.addUser(testUser);
             guideRepository.save(guide);
 

@@ -34,12 +34,14 @@ public class UserService {
             throw new IllegalArgumentException("Password cannot be null or empty");
         }
 
-        // Validation du role
-        if (dto.getRole() == null || dto.getRole().isBlank()) {
-            throw new IllegalArgumentException("Role cannot be null or empty");
+        if (dto.getFirstName() == null || dto.getFirstName().isBlank()) {
+            throw new IllegalArgumentException("First name cannot be null or empty");
         }
 
-        // Vérification doublon email
+        if (dto.getLastName() == null || dto.getLastName().isBlank()) {
+            throw new IllegalArgumentException("Last name cannot be null or empty");
+        }
+
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
             throw new ConflictException("Email already in use: " + dto.getEmail());
         }
@@ -47,7 +49,9 @@ public class UserService {
         User user = new User();
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setRole(dto.getRoleEnum());
+        user.setFirstName(dto.getFirstName());
+        user.setLastName(dto.getLastName());
+        user.setRole(User.Role.USER);
 
         return userRepository.save(user);
     }
@@ -59,10 +63,11 @@ public class UserService {
 
         // Mise à jour conditionnelle du email
         if (dto.getEmail() != null && !dto.getEmail().isBlank()) {
-            if (!dto.getEmail().equals(user.getEmail()) &&
-                    userRepository.findByEmail(dto.getEmail()).isPresent()) {
-                throw new ConflictException("Email already in use: " + dto.getEmail());
-            }
+            userRepository.findByEmail(dto.getEmail()).ifPresent(existing -> {
+                if (!existing.getId().equals(id)) {
+                    throw new ConflictException("Email already in use: " + dto.getEmail());
+                }
+            });
             user.setEmail(dto.getEmail());
         }
 
@@ -71,11 +76,21 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
 
-        // Mise à jour conditionnelle du role
-        if (dto.getRole() != null && !dto.getRole().isBlank()) {
-            user.setRole(dto.getRoleEnum());
+        if (dto.getFirstName() != null && !dto.getFirstName().isBlank()) {
+            user.setFirstName(dto.getFirstName());
         }
 
+        if (dto.getLastName() != null && !dto.getLastName().isBlank()) {
+            user.setLastName(dto.getLastName());
+        }
+
+        return userRepository.save(user);
+    }
+
+    public User changeRole(Long id, String role) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) return null;
+        user.setRole(User.Role.valueOf(role.toUpperCase()));
         return userRepository.save(user);
     }
 

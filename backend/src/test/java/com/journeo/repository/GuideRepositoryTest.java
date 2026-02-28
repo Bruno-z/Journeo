@@ -61,7 +61,7 @@ public class GuideRepositoryTest {
             Guide.PublicCible.EN_GROUPE
         );
 
-        testUser = new User("user@test.com", "password", User.Role.USER);
+        testUser = new User("user@test.com", "password", "Test", "User", User.Role.USER);
     }
 
     @Nested
@@ -335,8 +335,8 @@ public class GuideRepositoryTest {
         void shouldAddMultipleUsersToGuide() {
             Guide savedGuide = Objects.requireNonNull(guideRepository.save(testGuide1));
             Long savedGuideId = Objects.requireNonNull(savedGuide.getId());
-            User user1 = Objects.requireNonNull(userRepository.save(new User("user1@test.com", "pass", User.Role.USER)));
-            User user2 = Objects.requireNonNull(userRepository.save(new User("user2@test.com", "pass", User.Role.USER)));
+            User user1 = Objects.requireNonNull(userRepository.save(new User("user1@test.com", "pass", "User", "One", User.Role.USER)));
+            User user2 = Objects.requireNonNull(userRepository.save(new User("user2@test.com", "pass", "User", "Two", User.Role.USER)));
 
             savedGuide.addUser(user1);
             savedGuide.addUser(user2);

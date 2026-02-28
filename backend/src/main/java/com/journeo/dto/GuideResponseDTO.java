@@ -15,6 +15,8 @@ public class GuideResponseDTO {
     private Guide.Saison saison;
     private Guide.PublicCible pourQui;
     private List<ActivityResponseDTO> activities;
+    private List<UserResponseDTO> users;
+    private Double averageRating;
 
     public GuideResponseDTO(Guide guide) {
         this.id = guide.getId();
@@ -29,6 +31,9 @@ public class GuideResponseDTO {
                 .sorted(java.util.Comparator.comparingInt(ActivityResponseDTO::getJour)
                         .thenComparingInt(ActivityResponseDTO::getOrdre))
                 .collect(Collectors.toList());
+        this.users = guide.getUsers().stream()
+                .map(UserResponseDTO::new)
+                .collect(Collectors.toList());
     }
 
     // Getters uniquement
@@ -40,4 +45,7 @@ public class GuideResponseDTO {
     public Guide.Saison getSaison() { return saison; }
     public Guide.PublicCible getPourQui() { return pourQui; }
     public List<ActivityResponseDTO> getActivities() { return activities; }
+    public List<UserResponseDTO> getUsers() { return users; }
+    public Double getAverageRating() { return averageRating; }
+    public void setAverageRating(Double averageRating) { this.averageRating = averageRating; }
 }

@@ -1,0 +1,118 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="auth-brand__icon" aria-hidden="true">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="16" fill="#e8501e"/>
+          <path d="M8 20l4-8 4 4 4-6 4 10" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="auth-brand__name">Journeo</span>
+    </div>
+
+    <h1 class="auth-title">Créer un compte</h1>
+    <p class="auth-subtitle">Rejoignez l'équipe Journeo</p>
+
+    @if (error()) {
+      <div class="alert alert--error" role="alert">{{ error() }}</div>
+    }
+    @if (success()) {
+      <div class="alert alert--success" role="status">
+        Compte créé ! Redirection vers la connexion…
+      </div>
+    }
+
+    @if (!success()) {
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+        <!-- First name + Last name (side by side) -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName" class="form-label">Prénom</label>
+            <input
+              id="firstName"
+              type="text"
+              formControlName="firstName"
+              class="form-input"
+              [class.form-input--error]="form.get('firstName')?.invalid && form.get('firstName')?.touched"
+              placeholder="Prénom"
+              autocomplete="given-name"
+            />
+            @if (form.get('firstName')?.invalid && form.get('firstName')?.touched) {
+              <span class="form-error" role="alert">Prénom requis (2 caractères min.)</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="lastName" class="form-label">Nom</label>
+            <input
+              id="lastName"
+              type="text"
+              formControlName="lastName"
+              class="form-input"
+              [class.form-input--error]="form.get('lastName')?.invalid && form.get('lastName')?.touched"
+              placeholder="Nom de famille"
+              autocomplete="family-name"
+            />
+            @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
+              <span class="form-error" role="alert">Nom requis (2 caractères min.)</span>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email" class="form-label">Email</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            class="form-input"
+            [class.form-input--error]="form.get('email')?.invalid && form.get('email')?.touched"
+            placeholder="votre@email.com"
+            autocomplete="email"
+          />
+          @if (form.get('email')?.invalid && form.get('email')?.touched) {
+            <span class="form-error" role="alert">Email invalide</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">Mot de passe</label>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            class="form-input"
+            [class.form-input--error]="form.get('password')?.invalid && form.get('password')?.touched"
+            placeholder="Minimum 6 caractères"
+            autocomplete="new-password"
+          />
+          @if (form.get('password')?.hasError('minlength') && form.get('password')?.touched) {
+            <span class="form-error" role="alert">Minimum 6 caractères</span>
+          }
+          @if (form.get('password')?.hasError('required') && form.get('password')?.touched) {
+            <span class="form-error" role="alert">Mot de passe requis</span>
+          }
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn--primary btn--full btn--lg"
+          [disabled]="loading()"
+        >
+          @if (loading()) {
+            <span class="spinner" aria-hidden="true"></span>
+            Création…
+          } @else {
+            Créer le compte
+          }
+        </button>
+      </form>
+    }
+
+    <p class="auth-footer">
+      Déjà un compte ?
+      <a routerLink="/auth/login" class="auth-link">Se connecter</a>
+    </p>
+  </div>
+</div>

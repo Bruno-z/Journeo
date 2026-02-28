@@ -10,12 +10,15 @@ import jakarta.validation.constraints.Positive;
 public class GuideRequestDTO {
 
     @NotBlank
+    @Schema(example = "Circuit Alsace 3 jours")
     private String titre;
 
+    @Schema(example = "Découverte des villages alsaciens, vignobles et châteaux médiévaux.")
     private String description;
 
     @NotNull
     @Positive
+    @Schema(example = "3")
     private Integer jours;
 
     @NotNull

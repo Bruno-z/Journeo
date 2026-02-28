@@ -1,22 +1,29 @@
 package com.journeo.dto;
 
-import com.journeo.model.User;
-import jakarta.validation.constraints.NotNull;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
 public class UserRequestDTO {
 
-    @NotNull(message = "Email cannot be null")
+    public interface OnCreate {}
+    public interface OnUpdate {}
+
     @NotBlank(message = "Email cannot be empty")
+    @Schema(example = "newuser@example.com")
     private String email;
 
-    @NotNull(message = "Password cannot be null")
-    @NotBlank(message = "Password cannot be empty")
+    // Password obligatoire seulement à la création
+    @NotBlank(message = "Password cannot be empty", groups = OnCreate.class)
+    @Schema(example = "password123", description = "Required on creation, optional on update")
     private String password;
 
-    @NotNull(message = "Role cannot be null")
-    @NotBlank(message = "Role cannot be empty")
-    private String role;
+    @NotBlank(message = "First name cannot be empty", groups = OnCreate.class)
+    @Schema(example = "John")
+    private String firstName;
+
+    @NotBlank(message = "Last name cannot be empty", groups = OnCreate.class)
+    @Schema(example = "Doe")
+    private String lastName;
 
     public UserRequestDTO() {}
 
@@ -26,10 +33,9 @@ public class UserRequestDTO {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
 
-    public User.Role getRoleEnum() {
-        return User.Role.valueOf(role.toUpperCase());
-    }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
 }

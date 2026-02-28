@@ -6,11 +6,13 @@ import com.journeo.dto.GuideResponseDTO;
 import com.journeo.model.User;
 import com.journeo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import jakarta.validation.Valid;
-import com.journeo.exception.ResourceNotFoundException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.http.ResponseEntity;
@@ -29,98 +31,139 @@ public class UserController {
 
     private final UserService userService;
 
-    public UserController(UserService userService) { 
-        this.userService = userService; 
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
-    // 🔹 Ping simple pour tester que l'API fonctionne
     @GetMapping("/ping")
-    public String ping() { 
-        return "pong"; 
+    @Operation(summary = "Health-check de l'API users", description = "Retourne 'pong' — ne requiert pas d'authentification.")
+    public String ping() {
+        return "pong";
     }
 
-    // 🔹 Récupérer tous les utilisateurs
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Lister tous les utilisateurs", description = "Retourne la liste complète des utilisateurs enregistrés.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Liste récupérée avec succès"),
+        @ApiResponse(responseCode = "401", description = "Non authentifié")
+    })
     public List<UserResponseDTO> getAllUsers() {
         return userService.toDTOList(userService.findAll());
     }
 
-    // 🔹 Créer un nouvel utilisateur
     @PostMapping
     @Operation(
         summary = "Créer un utilisateur",
+        description = "Crée un nouveau compte utilisateur. Accessible sans authentification. Le rôle est toujours USER.",
         requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Utilisateur à créer",
+            description = "Données du nouvel utilisateur",
             required = true,
             content = @Content(
                 examples = @ExampleObject(
+                    name = "Exemple",
                     value = "{\n" +
                             "  \"email\": \"testuser@example.com\",\n" +
-                            "  \"password\": \"monMotDePasse123\",\n" +
-                            "  \"role\": \"USER\"\n" +
+                            "  \"firstName\": \"John\",\n" +
+                            "  \"lastName\": \"Doe\",\n" +
+                            "  \"password\": \"monMotDePasse123\"\n" +
                             "}"
                 )
             )
         )
     )
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Utilisateur créé avec succès"),
+        @ApiResponse(responseCode = "400", description = "Données invalides (email, prénom ou nom manquant)")
+    })
     public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserRequestDTO dto) {
         User saved = userService.createUser(dto);
-
-        // 🔹 Construction de l'URL du nouvel utilisateur
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(saved.getId())
                 .toUri();
-
         return ResponseEntity.created(location).body(userService.toDTO(saved));
     }
 
-    // 🔹 Récupérer un utilisateur par ID
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
+    @Operation(summary = "Récupérer un utilisateur par ID")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Utilisateur trouvé"),
+        @ApiResponse(responseCode = "404", description = "Utilisateur introuvable")
+    })
+    public ResponseEntity<UserResponseDTO> getUserById(
+            @Parameter(description = "ID de l'utilisateur", required = true) @PathVariable Long id) {
         User user = userService.findById(id);
-        if (user == null) throw new ResourceNotFoundException("User not found with id: " + id);
+        if (user == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(userService.toDTO(user));
     }
 
-    // 🔹 Supprimer un utilisateur
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    @Operation(summary = "Supprimer un utilisateur")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Utilisateur supprimé"),
+        @ApiResponse(responseCode = "404", description = "Utilisateur introuvable")
+    })
+    public ResponseEntity<Void> deleteUser(
+            @Parameter(description = "ID de l'utilisateur", required = true) @PathVariable Long id) {
         User user = userService.findById(id);
-        if (user == null) throw new ResourceNotFoundException("User not found with id: " + id);
+        if (user == null) return ResponseEntity.notFound().build();
         userService.deleteUser(user);
         return ResponseEntity.ok().build();
     }
 
-    // 🔹 Mettre à jour un utilisateur
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Mettre à jour un utilisateur existant")
+    @Operation(summary = "Mettre à jour un utilisateur existant", description = "Met à jour email, prénom, nom et/ou mot de passe (champs optionnels).")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Utilisateur mis à jour"),
+        @ApiResponse(responseCode = "404", description = "Utilisateur introuvable")
+    })
     public ResponseEntity<UserResponseDTO> updateUser(
-            @PathVariable Long id,
-            @Valid @RequestBody UserRequestDTO dto
-    ) {
+            @Parameter(description = "ID de l'utilisateur", required = true) @PathVariable Long id,
+            @Valid @RequestBody UserRequestDTO dto) {
         User updated = userService.updateUser(id, dto);
-        if (updated == null) throw new ResourceNotFoundException("User not found with id: " + id);
+        if (updated == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(userService.toDTO(updated));
     }
 
-    // 🔹 Récupérer les guides assignés à un utilisateur
+    @PatchMapping("/{id}/role")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+        summary = "Changer le rôle d'un utilisateur",
+        description = "Permet à un administrateur de promouvoir un membre en ADMIN ou de le rétrograder en USER."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Rôle mis à jour avec succès"),
+        @ApiResponse(responseCode = "400", description = "Valeur de rôle invalide — doit être ADMIN ou USER"),
+        @ApiResponse(responseCode = "404", description = "Utilisateur introuvable"),
+        @ApiResponse(responseCode = "403", description = "Accès refusé — réservé aux admins")
+    })
+    public ResponseEntity<UserResponseDTO> changeRole(
+            @Parameter(description = "ID de l'utilisateur", required = true) @PathVariable Long id,
+            @Parameter(description = "Nouveau rôle : ADMIN ou USER", required = true, example = "ADMIN") @RequestParam String role) {
+        User updated = userService.changeRole(id, role);
+        if (updated == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(userService.toDTO(updated));
+    }
+
     @GetMapping("/{userId}/guides")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Récupérer les guides assignés à l'utilisateur")
-    public ResponseEntity<List<GuideResponseDTO>> getUserGuides(@PathVariable Long userId) {
+    @Operation(summary = "Récupérer les guides assignés à un utilisateur")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Liste des guides"),
+        @ApiResponse(responseCode = "404", description = "Utilisateur introuvable")
+    })
+    public ResponseEntity<List<GuideResponseDTO>> getUserGuides(
+            @Parameter(description = "ID de l'utilisateur", required = true) @PathVariable Long userId) {
         User user = userService.findById(userId);
-        if (user == null) throw new ResourceNotFoundException("User not found with id: " + userId);
-
+        if (user == null) return ResponseEntity.notFound().build();
         List<GuideResponseDTO> guides = user.getGuides()
                 .stream()
                 .map(GuideResponseDTO::new)
                 .collect(java.util.stream.Collectors.toList());
-
         return ResponseEntity.ok(guides);
     }
 }
