@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GuidesService } from '../../../core/services/guides.service';
 import { GuideRequest } from '../../../core/models/guide.model';
+import { getCoverImage } from '../../../core/utils/cover-image.util';
 
 @Component({
   selector: 'app-guide-form',
@@ -23,6 +24,13 @@ export class GuideFormComponent implements OnInit {
   editId   = signal<number | null>(null);
   isEdit   = computed(() => this.editId() !== null);
 
+  previewTitle  = signal('');
+  previewSaison = signal('ETE');
+
+  coverPreview = computed(() =>
+    getCoverImage(this.previewTitle() || 'voyage', this.previewSaison())
+  );
+
   form = this.fb.group({
     titre:       ['', [Validators.required, Validators.minLength(2)]],
     description: [''],
@@ -33,6 +41,9 @@ export class GuideFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.form.get('titre')?.valueChanges.subscribe(v => this.previewTitle.set(v ?? ''));
+    this.form.get('saison')?.valueChanges.subscribe(v => this.previewSaison.set(v ?? 'ETE'));
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.editId.set(Number(id));
@@ -47,6 +58,8 @@ export class GuideFormComponent implements OnInit {
             saison: guide.saison,
             pourQui: guide.pourQui,
           });
+          this.previewTitle.set(guide.titre);
+          this.previewSaison.set(guide.saison);
           this.loading.set(false);
         },
         error: () => {
