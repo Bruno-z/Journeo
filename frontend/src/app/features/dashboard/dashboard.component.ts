@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar.component';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
+import { SidebarStateService } from '../../core/services/sidebar-state.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -10,4 +11,6 @@ import { NavbarComponent } from '../../shared/components/navbar/navbar.component
   styleUrl: './dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DashboardComponent {}
+export class DashboardComponent {
+  protected sidebarState = inject(SidebarStateService);
+}
