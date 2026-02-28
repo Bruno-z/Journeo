@@ -50,3 +50,13 @@
   color: var(--color-primary);
   font-weight: 500;
 }
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.875rem;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}

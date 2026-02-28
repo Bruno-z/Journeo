@@ -20,9 +20,10 @@ export class RegisterComponent {
   success = signal(false);
 
   form = this.fb.group({
-    email:    ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
-    role:     ['USER', Validators.required],
+    firstName: ['', [Validators.required, Validators.minLength(2)]],
+    lastName:  ['', [Validators.required, Validators.minLength(2)]],
+    email:     ['', [Validators.required, Validators.email]],
+    password:  ['', [Validators.required, Validators.minLength(6)]],
   });
 
   submit(): void {
@@ -33,8 +34,8 @@ export class RegisterComponent {
     this.loading.set(true);
     this.error.set(null);
 
-    const { email, password, role } = this.form.value;
-    this.usersService.create({ email: email!, password: password!, role: role! }).subscribe({
+    const { email, password, firstName, lastName } = this.form.value;
+    this.usersService.create({ email: email!, password: password!, role: 'USER', firstName: firstName!, lastName: lastName! }).subscribe({
       next: () => {
         this.success.set(true);
         this.loading.set(false);

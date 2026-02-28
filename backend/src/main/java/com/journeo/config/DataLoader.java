@@ -26,9 +26,9 @@ public class DataLoader implements CommandLineRunner {
     public void run(String... args) {
         if (userRepository.count() > 0) return;
 
-        User admin = userRepository.save(new User("admin@hws.com", passwordEncoder.encode("admin123"), User.Role.ADMIN));
-        User user1 = userRepository.save(new User("user1@hws.com", passwordEncoder.encode("user123"), User.Role.USER));
-        User user2 = userRepository.save(new User("user2@hws.com", passwordEncoder.encode("user123"), User.Role.USER));
+        User admin = userRepository.save(new User("admin@hws.com", passwordEncoder.encode("admin123"), "Admin", "System", User.Role.ADMIN));
+        User user1 = userRepository.save(new User("user1@hws.com", passwordEncoder.encode("user123"), "Thomas", "Durand", User.Role.USER));
+        User user2 = userRepository.save(new User("user2@hws.com", passwordEncoder.encode("user123"), "Sophie", "Martin", User.Role.USER));
 
         // Associate guides with users (guides 1-8 inserted by V2 Flyway migration)
         // Mirrors original V2 guide_user associations:
