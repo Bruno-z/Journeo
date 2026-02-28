@@ -3,7 +3,8 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { GuidesService } from '../../../core/services/guides.service';
 import { UsersService } from '../../../core/services/users.service';
-import { Guide } from '../../../core/models/guide.model';
+import { Guide, MOBILITE_LABELS, SAISON_LABELS } from '../../../core/models/guide.model';
+import { getCoverImage } from '../../../core/utils/cover-image.util';
 
 @Component({
   selector: 'app-home',
@@ -21,8 +22,41 @@ export class HomeComponent implements OnInit {
   userCount = signal<number>(0);
   loading   = signal(true);
 
-  recentGuides = computed(() => this.guides().slice(0, 4));
-  guideCount   = computed(() => this.guides().length);
+  accessibleGuides = computed(() => {
+    if (this.auth.isAdmin()) return this.guides();
+    const email = this.auth.email();
+    return this.guides().filter(g => g.users?.some(u => u.email === email) ?? false);
+  });
+
+  // Affiche tous les guides (le filtrage par note nécessiterait une mise à jour du backend)
+  ratedGuides = computed(() => {
+    return this.accessibleGuides();
+  });
+  guideCount       = computed(() => this.accessibleGuides().length);
+  totalActivities  = computed(() =>
+    this.accessibleGuides().reduce((acc, g) => acc + (g.activities?.length ?? 0), 0)
+  );
+  
+  // 🔹 Nouvelle donnée pour la liste verticale
+  latestActivities = computed(() => {
+    return this.accessibleGuides()
+      .flatMap(g => (g.activities || []).map((a: any) => ({ ...a, guideId: g.id, guideTitle: g.titre })))
+      .slice(0, 5); // On prend les 5 premières
+  });
+
+  readonly mobiliteLabels = MOBILITE_LABELS;
+  readonly saisonLabels   = SAISON_LABELS;
+
+  coverFor(guide: Guide): string {
+    return getCoverImage(guide.titre, guide.saison);
+  }
+
+  get greeting(): string {
+    const h = new Date().getHours();
+    if (h < 12) return 'Bonjour';
+    if (h < 18) return 'Bon après-midi';
+    return 'Bonsoir';
+  }
 
   ngOnInit(): void {
     this.guidesService.getAll().subscribe({

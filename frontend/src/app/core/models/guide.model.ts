@@ -1,7 +1,7 @@
 import { Activity } from './activity.model';
 import { User } from './user.model';
 
-export type Mobilite = 'VOITURE' | 'VELO' | 'A_PIED' | 'MOTO';
+export type Mobilite = 'VOITURE' | 'VELO' | 'A_PIED' | 'MOTO' | 'METRO' | 'TRANSPORTS_EN_COMMUN';
 export type Saison = 'ETE' | 'PRINTEMPS' | 'AUTOMNE' | 'HIVER';
 export type PublicCible = 'FAMILLE' | 'SEUL' | 'EN_GROUPE' | 'ENTRE_AMIS';
 
@@ -31,6 +31,8 @@ export const MOBILITE_LABELS: Record<Mobilite, string> = {
   VELO: 'Vélo',
   A_PIED: 'À pied',
   MOTO: 'Moto',
+  METRO: 'Métro',
+  TRANSPORTS_EN_COMMUN: 'Transports en commun',
 };
 
 export const SAISON_LABELS: Record<Saison, string> = {

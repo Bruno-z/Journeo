@@ -12,6 +12,8 @@ export interface Activity {
   duree: number;
   ordre: number;
   jour: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface ActivityRequest {
