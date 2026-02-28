@@ -56,7 +56,7 @@ public class GuideServiceTest {
             Guide.PublicCible.FAMILLE
         );
 
-        testUser = new User("user@test.com", "password", User.Role.USER);
+        testUser = new User("user@test.com", "password", "Test", "User", User.Role.USER);
     }
 
     @Nested
@@ -313,7 +313,7 @@ public class GuideServiceTest {
         @Test
         @DisplayName("Should add multiple users to same guide")
         void shouldAddMultipleUsersToSameGuide() {
-            User user2 = new User("user2@test.com", "password", User.Role.USER);
+            User user2 = new User("user2@test.com", "password", "User", "Two", User.Role.USER);
             user2.setId(2L);
 
             when(guideRepository.findById(1L)).thenReturn(Optional.of(testGuide));

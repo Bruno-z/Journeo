@@ -60,8 +60,8 @@ public class GuideMediaControllerTest {
         guideRepository.deleteAll();
         userRepository.deleteAll();
 
-        userRepository.save(new User("admin@test.com", "password", User.Role.ADMIN));
-        userRepository.save(new User("user@test.com",  "password", User.Role.USER));
+        userRepository.save(new User("admin@test.com", "password", "Admin", "User", User.Role.ADMIN));
+        userRepository.save(new User("user@test.com",  "password", "Regular", "User", User.Role.USER));
 
         testGuide = guideRepository.save(new Guide(
             "Paris City Tour", "Beautiful tour", 3,

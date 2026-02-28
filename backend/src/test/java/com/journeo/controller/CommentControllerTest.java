@@ -60,9 +60,9 @@ public class CommentControllerTest {
         guideRepository.deleteAll();
         userRepository.deleteAll();
 
-        adminUser  = userRepository.save(new User("admin@test.com",  "password", User.Role.ADMIN));
-        regularUser = userRepository.save(new User("user@test.com",  "password", User.Role.USER));
-        otherUser   = userRepository.save(new User("other@test.com", "password", User.Role.USER));
+        adminUser  = userRepository.save(new User("admin@test.com",  "password", "Admin", "User", User.Role.ADMIN));
+        regularUser = userRepository.save(new User("user@test.com",  "password", "Regular", "User", User.Role.USER));
+        otherUser   = userRepository.save(new User("other@test.com", "password", "Other", "User", User.Role.USER));
 
         testGuide = guideRepository.save(new Guide(
             "Paris City Tour", "Beautiful tour", 3,

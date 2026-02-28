@@ -45,6 +45,8 @@ public class AuthControllerTest {
         User user = new User();
         user.setEmail("auth-test@example.com");
         user.setPassword(passwordEncoder.encode("password123"));
+        user.setFirstName("Auth");
+        user.setLastName("Test");
         user.setRole(User.Role.ADMIN);
         userRepository.save(user);
     }

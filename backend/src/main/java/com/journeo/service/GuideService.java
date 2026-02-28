@@ -6,8 +6,6 @@ import com.journeo.model.Guide;
 import com.journeo.model.User;
 import com.journeo.repository.GuideRepository;
 import com.journeo.repository.UserRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,10 +23,12 @@ public class GuideService {
         this.userRepository = userRepository;
     }
 
+    // Créer un guide
     public Guide save(Guide guide) {
         return guideRepository.save(guide);
     }
 
+    // Mettre à jour un guide
     public Guide update(Long id, GuideRequestDTO dto) {
         Optional<Guide> optionalGuide = guideRepository.findById(id);
         if (optionalGuide.isEmpty()) return null;
@@ -44,54 +44,42 @@ public class GuideService {
         return guideRepository.save(guide);
     }
 
+    // Supprimer un guide
     public void delete(Guide guide) {
         guideRepository.delete(guide);
     }
 
+    // Récupérer un guide par ID
     public Guide findById(Long id) {
         return guideRepository.findById(id).orElse(null);
     }
 
+    // Lister tous les guides
     public List<Guide> findAll() {
         return guideRepository.findAll();
     }
 
-    public Page<Guide> findAll(Pageable pageable) {
-        return guideRepository.findAll(pageable);
-    }
-
-    public List<Guide> findByUserId(Long userId) {
-        return guideRepository.findByUsersId(userId);
-    }
-
-    public Page<Guide> findByUserId(Long userId, Pageable pageable) {
-        return guideRepository.findByUsersId(userId, pageable);
-    }
-
+    // Ajouter un utilisateur à un guide
     public Guide addUserToGuide(Long guideId, Long userId) {
-        Optional<Guide> guideOpt = guideRepository.findById(guideId);
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (guideOpt.isEmpty() || userOpt.isEmpty()) return null;
-
-        Guide guide = guideOpt.get();
-        User user = userOpt.get();
+        Guide guide = guideRepository.findById(guideId).orElse(null);
+        if (guide == null) return null;
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) return null;
         guide.addUser(user);
-
         return guideRepository.save(guide);
     }
 
+    // Retirer un utilisateur d’un guide
     public Guide removeUserFromGuide(Long guideId, Long userId) {
-        Optional<Guide> guideOpt = guideRepository.findById(guideId);
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (guideOpt.isEmpty() || userOpt.isEmpty()) return null;
-
-        Guide guide = guideOpt.get();
-        User user = userOpt.get();
+        Guide guide = guideRepository.findById(guideId).orElse(null);
+        if (guide == null) return null;
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) return null;
         guide.removeUser(user);
-
         return guideRepository.save(guide);
     }
 
+    // Conversion en DTO
     public GuideResponseDTO toDTO(Guide guide) {
         return new GuideResponseDTO(guide);
     }

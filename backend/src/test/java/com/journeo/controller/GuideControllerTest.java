@@ -71,8 +71,8 @@ public class GuideControllerTest {
         userRepository.deleteAll();
 
         // Create test users
-        adminUser = new User("admin@test.com", "password", User.Role.ADMIN);
-        regularUser = new User("user@test.com", "password", User.Role.USER);
+        adminUser = new User("admin@test.com", "password", "Admin", "User", User.Role.ADMIN);
+        regularUser = new User("user@test.com", "password", "Regular", "User", User.Role.USER);
         userRepository.saveAll(java.util.List.of(adminUser, regularUser));
 
         // Create test guide

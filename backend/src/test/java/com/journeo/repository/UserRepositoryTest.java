@@ -33,8 +33,8 @@ public class UserRepositoryTest {
     void setUp() {
         userRepository.deleteAll();
 
-        testUser1 = new User("user1@test.com", "password1", User.Role.USER);
-        testUser2 = new User("user2@test.com", "password2", User.Role.ADMIN);
+        testUser1 = new User("user1@test.com", "password1", "User", "One", User.Role.USER);
+        testUser2 = new User("user2@test.com", "password2", "User", "Two", User.Role.ADMIN);
     }
 
     @Nested
@@ -84,7 +84,7 @@ public class UserRepositoryTest {
         void shouldThrowExceptionOnDuplicateEmail() {
             Objects.requireNonNull(userRepository.save(testUser1));
 
-            User duplicate = new User("user1@test.com", "otherpassword", User.Role.ADMIN);
+            User duplicate = new User("user1@test.com", "otherpassword", "Dup", "User", User.Role.ADMIN);
 
             assertThatThrownBy(() -> {
                 userRepository.save(duplicate);

@@ -58,8 +58,8 @@ public class UserControllerTest {
         guideRepository.deleteAll();
         userRepository.deleteAll();
 
-        testUser = new User("user@test.com", passwordEncoder.encode("password123"), User.Role.USER);
-        adminUser = new User("admin@test.com", passwordEncoder.encode("adminpass"), User.Role.ADMIN);
+        testUser = new User("user@test.com", passwordEncoder.encode("password123"), "Test", "User", User.Role.USER);
+        adminUser = new User("admin@test.com", passwordEncoder.encode("adminpass"), "Admin", "User", User.Role.ADMIN);
         userRepository.save(testUser);
         userRepository.save(adminUser);
     }
@@ -68,14 +68,14 @@ public class UserControllerTest {
         UserRequestDTO dto = new UserRequestDTO();
         dto.setEmail(email);
         dto.setPassword(password);
-        dto.setRole(role);
+        dto.setFirstName("John");
+        dto.setLastName("Doe");
         return dto;
     }
 
     private UserRequestDTO buildUpdateDTO(String email, String role, String password) {
         UserRequestDTO dto = new UserRequestDTO();
         dto.setEmail(email);
-        dto.setRole(role);
         dto.setPassword(password); // mot de passe optionnel pour update
         return dto;
     }
@@ -177,25 +177,11 @@ public class UserControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
                 .andExpect(jsonPath("$.email", equalTo("newuser@test.com")))
-                .andExpect(jsonPath("$.role", equalTo("USER")))
                 .andReturn();
 
             String location = result.getResponse().getHeader("Location");
             assertThat(location).contains("/api/users/");
             assertThat(userRepository.findByEmail("newuser@test.com")).isPresent();
-        }
-
-        @Test
-        @DisplayName("Should create ADMIN user")
-        void shouldCreateAdminUser() throws Exception {
-            UserRequestDTO dto = buildCreateDTO("newadmin@test.com", "adminpass", "ADMIN");
-
-            mockMvc.perform(post("/api/users")
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.role", equalTo("ADMIN")));
         }
 
         @Test
@@ -221,30 +207,6 @@ public class UserControllerTest {
                 .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest());
         }
-
-        @Test
-        @DisplayName("Should return 400 when role is blank")
-        void shouldReturn400WhenRoleIsBlank() throws Exception {
-            UserRequestDTO dto = buildCreateDTO("valid@test.com", "password123", "");
-
-            mockMvc.perform(post("/api/users")
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("Should return 400 when role is invalid")
-        void shouldReturn400WhenRoleIsInvalid() throws Exception {
-            String invalidJson = "{\"email\":\"valid@test.com\",\"password\":\"pass123\",\"role\":\"SUPERADMIN\"}";
-
-            mockMvc.perform(post("/api/users")
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(invalidJson))
-                .andExpect(status().isBadRequest());
-        }
     }
 
     // -------------------------- Update User Tests --------------------------
@@ -266,20 +228,6 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.email", equalTo("updated@test.com")));
 
             assertThat(userRepository.findByEmail("updated@test.com")).isPresent();
-        }
-
-        @Test
-        @DisplayName("Should update role successfully")
-        @WithMockUser(roles = "ADMIN")
-        void shouldUpdateRoleSuccessfully() throws Exception {
-            UserRequestDTO dto = buildUpdateDTO("user@test.com", "ADMIN", null);
-
-            mockMvc.perform(put("/api/users/{id}", testUser.getId())
-                .with(csrf())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.role", equalTo("ADMIN")));
         }
 
         @Test
