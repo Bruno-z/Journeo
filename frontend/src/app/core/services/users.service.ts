@@ -30,6 +30,10 @@ export class UsersService {
     return this.http.put<User>(`${API}/users/${id}`, user);
   }
 
+  changeRole(id: number, role: string): Observable<User> {
+    return this.http.patch<User>(`${API}/users/${id}/role?role=${role}`, {});
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${API}/users/${id}`);
   }
