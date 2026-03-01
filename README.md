@@ -166,3 +166,37 @@ Feel free to fork the repository and submit pull requests. Ensure all tests pass
 ## Contact
 For questions or support, contact Bruno Zilio.
 
+Prérequis à installer
+Outil	Version	Pourquoi
+Docker Desktop	n'importe laquelle	Lance PostgreSQL + le backend via docker compose
+Node.js	20+	Pour le frontend Angular
+Angular CLI	npm install -g @angular/cli	Pour ng serve
+Java/Maven pas nécessaires — le backend tourne dans Docker.
+
+Commandes après le clone
+
+# 1. Démarrer la DB + backend (compile et lance Spring Boot)
+docker compose up --build
+
+# 2. Dans un autre terminal — installer et lancer le frontend
+cd frontend
+npm install
+ng serve
+Puis ouvrir http://localhost:4200
+
+Comptes de test (créés automatiquement au 1er démarrage)
+Email	Mot de passe	Rôle
+admin@hws.com	admin123	Admin
+user1@hws.com	user123	Utilisateur
+user2@hws.com	user123	Utilisateur
+Ce qu'il n'a PAS besoin de configurer
+Pas de fichier .env à créer
+Pas de variable d'environnement à définir (tout est dans application-dev.properties et docker-compose.yml)
+Pas de base de données à installer manuellement — Docker s'en charge
+Seul point d'attention
+Si le docker compose up plante au démarrage du backend (rare), c'est souvent que la DB n'est pas encore prête. Solution :
+
+
+docker compose down -v   # remet tout à zéro
+docker compose up --build
+
