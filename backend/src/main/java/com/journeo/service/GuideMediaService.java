@@ -36,16 +36,21 @@ public class GuideMediaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Guide not found with id: " + guideId));
 
         String fileName = storageService.store(file);
+        try {
+            GuideMedia media = new GuideMedia();
+            media.setFileName(fileName);
+            media.setOriginalName(file.getOriginalFilename() != null ? file.getOriginalFilename() : fileName);
+            media.setContentType(file.getContentType());
+            media.setSize(file.getSize());
+            media.setFileType(storageService.detectFileType(file.getContentType()));
+            media.setGuide(guide);
 
-        GuideMedia media = new GuideMedia();
-        media.setFileName(fileName);
-        media.setOriginalName(file.getOriginalFilename() != null ? file.getOriginalFilename() : fileName);
-        media.setContentType(file.getContentType());
-        media.setSize(file.getSize());
-        media.setFileType(storageService.detectFileType(file.getContentType()));
-        media.setGuide(guide);
-
-        return new GuideMediaResponseDTO(mediaRepository.save(media), baseUrl);
+            return new GuideMediaResponseDTO(mediaRepository.save(media), baseUrl);
+        } catch (Exception e) {
+            // Nettoyage du fichier si la persistance DB échoue (évite les fichiers orphelins)
+            storageService.delete(fileName);
+            throw e;
+        }
     }
 
     @Transactional(readOnly = true)
