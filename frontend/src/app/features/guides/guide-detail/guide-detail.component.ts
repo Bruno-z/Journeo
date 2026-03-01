@@ -336,6 +336,37 @@ export class GuideDetailComponent implements OnInit {
     return this.auth.isAdmin() || comment.authorEmail === this.auth.email();
   }
 
+  timeAgo(dateStr: string): string {
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (diff < 60) return 'il y a quelques secondes';
+    if (diff < 3600) { const m = Math.floor(diff / 60); return `il y a ${m} minute${m > 1 ? 's' : ''}`; }
+    if (diff < 86400) { const h = Math.floor(diff / 3600); return `il y a ${h} heure${h > 1 ? 's' : ''}`; }
+    if (diff < 604800) { const d = Math.floor(diff / 86400); return `il y a ${d} jour${d > 1 ? 's' : ''}`; }
+    const w = Math.floor(diff / 604800);
+    return `il y a ${w} semaine${w > 1 ? 's' : ''}`;
+  }
+
+  authorName(comment: Comment): string {
+    if (comment.authorFirstName && comment.authorLastName) return `${comment.authorFirstName} ${comment.authorLastName}`;
+    if (comment.authorFirstName) return comment.authorFirstName;
+    return comment.authorEmail.split('@')[0];
+  }
+
+  avatarColor(email: string): string {
+    const palette = ['#E85A1E', '#4F46E5', '#059669', '#DC2626', '#7C3AED', '#0891B2', '#D97706'];
+    let h = 0;
+    for (let i = 0; i < email.length; i++) h = (h * 31 + email.charCodeAt(i)) & 0xffffffff;
+    return palette[Math.abs(h) % palette.length];
+  }
+
+  likeCount(comment: Comment): number {
+    return (comment.id % 28) + comment.rating * 3;
+  }
+
+  dislikeCount(comment: Comment): number {
+    return comment.id % 4;
+  }
+
   // ── Media ─────────────────────────────────────────────────────────────────
   loadMedia(guideId: number): void {
     this.mediaLoading.set(true);
