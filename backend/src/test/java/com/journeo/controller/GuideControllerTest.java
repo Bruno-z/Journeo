@@ -98,12 +98,12 @@ public class GuideControllerTest {
             mockMvc.perform(get("/api/guides"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].titre", equalTo("Paris City Tour")))
-                .andExpect(jsonPath("$[0].jours", equalTo(3)))
-                .andExpect(jsonPath("$[0].mobilite", equalTo("A_PIED")))
-                .andExpect(jsonPath("$[0].saison", equalTo("ETE")))
-                .andExpect(jsonPath("$[0].pourQui", equalTo("FAMILLE")));
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].titre", equalTo("Paris City Tour")))
+                .andExpect(jsonPath("$.content[0].jours", equalTo(3)))
+                .andExpect(jsonPath("$.content[0].mobilite", equalTo("A_PIED")))
+                .andExpect(jsonPath("$.content[0].saison", equalTo("ETE")))
+                .andExpect(jsonPath("$.content[0].pourQui", equalTo("FAMILLE")));
         }
 
         @Test
@@ -115,7 +115,7 @@ public class GuideControllerTest {
             mockMvc.perform(get("/api/guides"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(0)));
+                .andExpect(jsonPath("$.content", hasSize(0)));
         }
 
         @Test
@@ -133,8 +133,8 @@ public class GuideControllerTest {
 
             mockMvc.perform(get("/api/guides"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[*].titre", containsInAnyOrder("Paris City Tour", "Lyon Gastronomy")));
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.content[*].titre", containsInAnyOrder("Paris City Tour", "Lyon Gastronomy")));
         }
 
         @Test
@@ -146,8 +146,8 @@ public class GuideControllerTest {
 
             mockMvc.perform(get("/api/guides"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].titre", equalTo("Paris City Tour")));
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].titre", equalTo("Paris City Tour")));
         }
 
         @Test
@@ -156,7 +156,7 @@ public class GuideControllerTest {
         void shouldReturnEmptyListForUserWithNoGuides() throws Exception {
             mockMvc.perform(get("/api/guides"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
+                .andExpect(jsonPath("$.content", hasSize(0)));
         }
 
         @Test
