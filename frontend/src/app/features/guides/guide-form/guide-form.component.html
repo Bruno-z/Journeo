@@ -159,6 +159,11 @@
       <div class="preview-panel">
         <p class="preview-panel__label">Aperçu de la carte</p>
         <div class="preview-card" [style.background-image]="'url(' + coverPreview() + ')'">
+          @if (coverLoading()) {
+            <div class="preview-card__loader" aria-label="Chargement de la photo">
+              <span class="preview-spinner"></span>
+            </div>
+          }
           <div class="preview-card__overlay"></div>
           <div class="preview-card__content">
             <div class="preview-card__chips">
@@ -178,7 +183,7 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
-          La photo est sélectionnée automatiquement selon la destination.
+          La photo est trouvée automatiquement pour toute ville du monde.
         </p>
       </div>
 

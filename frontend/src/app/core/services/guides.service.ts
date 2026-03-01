@@ -2,8 +2,9 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Guide, GuideRequest } from '../models/guide.model';
+import { environment } from '../../../environments/environment';
 
-const API = 'http://localhost:8080/api';
+const API = environment.apiUrl;
 
 @Injectable({ providedIn: 'root' })
 export class GuidesService {

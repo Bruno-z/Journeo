@@ -230,6 +230,18 @@
   flex-direction: column;
   justify-content: flex-end;
 
+  &__loader {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(2px);
+    border-radius: inherit;
+  }
+
   &__overlay {
     position: absolute;
     inset: 0;
@@ -301,4 +313,17 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(4px);
+}
+
+.preview-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spinPreview 0.7s linear infinite;
+}
+
+@keyframes spinPreview {
+  to { transform: rotate(360deg); }
 }

@@ -1,22 +1,394 @@
-<div class="landing-page">
-  <!-- Video background -->
-  <video autoplay muted loop playsinline class="landing-video">
-    <source src="assets/videos/travel-hero.mp4" type="video/mp4">
-    <img src="assets/images/travel-hero.jpg" alt="Paysage de voyage">
-  </video>
+<!-- ── NAVBAR ────────────────────────────────────────────── -->
+<header class="nav">
+  <div class="nav__inner">
+    <!-- Logo Journeo -->
+    <a class="nav__logo" href="#">
+      <svg class="nav__logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Fond orange arrondi -->
+        <rect width="32" height="32" rx="9" fill="#FF6B2B"/>
+        <!-- Route avec waypoints -->
+        <circle cx="9" cy="22" r="2.5" fill="white"/>
+        <circle cx="23" cy="10" r="2.5" fill="white"/>
+        <path d="M9 19.5 C9 15 14 17 16 14 C18 11 20 10 23 12.5"
+              stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <!-- Pin destination -->
+        <circle cx="23" cy="10" r="4" stroke="white" stroke-width="1.5" fill="none"/>
+        <circle cx="23" cy="10" r="1.5" fill="white"/>
+      </svg>
+      <span class="nav__logo-text">Journeo</span>
+    </a>
 
-  <!-- Overlay sombre pour texte lisible -->
-  <div class="landing-overlay"></div>
+    <!-- Nav links -->
+    <nav class="nav__links" aria-label="Navigation principale">
+      <a class="nav__link nav__link--active" href="#">Accueil</a>
+      <a class="nav__link" href="#">À propos</a>
+      <a class="nav__link" href="#">Destinations</a>
+      <a class="nav__link" href="#">Guides</a>
+      <a class="nav__link" href="#">Blog</a>
+    </nav>
 
-  <!-- Hero content -->
-  <div class="landing-content">
-    <h1 class="landing-title">Découvrez vos prochaines aventures</h1>
-    <p class="landing-subtitle">Explorez, réservez et partez à l’aventure avec Journeo</p>
-    <button class="btn btn--primary btn--lg" (click)="openLoginModal()">
-      Se connecter / S’inscrire
-    </button>
+    <!-- CTA -->
+    <div class="nav__actions">
+      <button class="nav__login" (click)="modal.open('login')">Se connecter</button>
+      <button class="btn btn--primary" (click)="modal.open('register')">Commencer</button>
+    </div>
   </div>
-</div>
+</header>
 
-<!-- Modal login -->
-<app-auth-modal #loginModal></app-auth-modal>
+<!-- ── HERO ──────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero__inner">
+    <!-- Left column -->
+    <div class="hero__content">
+      <div class="hero__badge">
+        <span class="hero__badge-dot"></span>
+        Guides de voyage
+      </div>
+
+      <h1 class="hero__title">
+        Découvrez Les<br>
+        Plus Belles<br>
+        Destinations Du Monde
+      </h1>
+
+      <!-- Search widget -->
+      <div class="hero__search">
+        <div class="hero__search-field">
+          <span class="hero__search-label">Depuis</span>
+          <input class="hero__search-input" type="text" placeholder="Votre ville" aria-label="Ville de départ">
+        </div>
+        <div class="hero__search-sep" aria-hidden="true"></div>
+        <div class="hero__search-field">
+          <span class="hero__search-label">Destination</span>
+          <input class="hero__search-input" type="text" placeholder="Où voulez-vous aller ?" aria-label="Destination">
+        </div>
+        <button class="btn btn--primary hero__search-btn" type="button" (click)="modal.open('login')">Explorer</button>
+      </div>
+    </div>
+
+    <!-- Right column — image collage -->
+    <div class="hero__visual" aria-hidden="true">
+      <!-- Main image -->
+      <img
+        class="hero__main-img"
+        src="https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=800"
+        alt="Destination de voyage">
+
+      <!-- Floating mini-card -->
+      <div class="hero__float-card">
+        <img
+          class="hero__float-img"
+          src="https://images.pexels.com/photos/3278215/pexels-photo-3278215.jpeg?auto=compress&cs=tinysrgb&w=200"
+          alt="Santorin">
+        <div class="hero__float-info">
+          <strong>Santorin Magnifique</strong>
+          <span>Grèce</span>
+        </div>
+      </div>
+
+      <!-- Stats pill -->
+      <div class="hero__stats">
+        @for (stat of stats; track stat.value) {
+          <div class="hero__stat">
+            <strong>{{ stat.value }}</strong>
+            <span>{{ stat.label }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── RECOMMEND ─────────────────────────────────────────── -->
+<section class="recommend">
+  <div class="section__inner">
+    <!-- Left -->
+    <div class="recommend__left">
+      <span class="section__tag">Sélection du mois</span>
+      <h2 class="section__title">
+        Nos guides vous emmènent<br>
+        vers les plus belles destinations
+      </h2>
+
+      <div class="recommend__stats">
+        @for (stat of stats; track stat.value) {
+          <div class="recommend__stat">
+            <strong class="recommend__stat-value">{{ stat.value }}</strong>
+            <span class="recommend__stat-label">{{ stat.label }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Right — stacked images -->
+    <div class="recommend__images" aria-hidden="true">
+      <img
+        class="recommend__img recommend__img--top"
+        src="https://images.pexels.com/photos/1430672/pexels-photo-1430672.jpeg?auto=compress&cs=tinysrgb&w=500"
+        alt="Côte turquoise">
+      <img
+        class="recommend__img recommend__img--bottom"
+        src="https://images.pexels.com/photos/4321802/pexels-photo-4321802.jpeg?auto=compress&cs=tinysrgb&w=500"
+        alt="Fjord montagneux">
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ──────────────────────────────────────────── -->
+<section class="features">
+  <div class="section__inner features__inner">
+    <span class="section__tag">Nos fonctionnalités</span>
+    <h2 class="section__title features__title">Nos meilleures fonctionnalités pour vous</h2>
+
+    <div class="features__grid">
+      @for (feat of features; track feat.title) {
+        <div class="feature-card">
+          <div class="feature-card__icon-wrap">
+            @if (feat.icon === 'location') {
+              <svg viewBox="0 0 24 24" fill="none" class="feature-card__icon">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z" fill="white"/>
+              </svg>
+            }
+            @if (feat.icon === 'guide') {
+              <svg viewBox="0 0 24 24" fill="none" class="feature-card__icon">
+                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill="white"/>
+              </svg>
+            }
+            @if (feat.icon === 'booking') {
+              <svg viewBox="0 0 24 24" fill="none" class="feature-card__icon">
+                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" fill="white"/>
+              </svg>
+            }
+          </div>
+          <h3 class="feature-card__title">{{ feat.title }}</h3>
+          <p class="feature-card__desc">{{ feat.desc }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ── EXPLORE DESTINATIONS ──────────────────────────────── -->
+<section class="explore">
+  <div class="section__inner">
+    <h2 class="section__title explore__title">
+      Explorez la destination<br>de vos rêves ici !
+    </h2>
+
+    <!-- Tab bar -->
+    <div class="explore__tabs" role="tablist">
+      @for (tab of tabs; track tab) {
+        <button
+          class="explore__tab"
+          [class.explore__tab--active]="activeTab() === tab"
+          (click)="setTab(tab)"
+          role="tab"
+          [attr.aria-selected]="activeTab() === tab"
+          type="button">
+          {{ tab }}
+        </button>
+      }
+    </div>
+
+    <!-- Destination grid -->
+    <div class="dest-grid">
+      @for (dest of destinations; track dest.name) {
+        <article class="dest-card">
+          <div class="dest-card__img-wrap">
+            <img
+              class="dest-card__img"
+              [src]="dest.image"
+              [alt]="dest.name"
+              loading="lazy">
+            <div class="dest-card__overlay"></div>
+            <div class="dest-card__price">
+              <span>{{ dest.price }}€</span>
+              <span class="dest-card__price-label">/pers.</span>
+            </div>
+          </div>
+          <div class="dest-card__body">
+            <h3 class="dest-card__name">{{ dest.name }}</h3>
+            <div class="dest-card__meta">
+              <div class="dest-card__stars" [attr.aria-label]="'Note ' + dest.rating">
+                @for (star of starsArray(); track star) {
+                  <svg class="dest-card__star" viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M8 1l1.8 3.6L14 5.2l-3 2.9.7 4.1L8 10.1l-3.7 2.1.7-4.1-3-2.9 4.2-.6z" fill="currentColor"/>
+                  </svg>
+                }
+              </div>
+              <span class="dest-card__rating">{{ dest.rating }}</span>
+              <span class="dest-card__reviews">({{ dest.reviews }} avis)</span>
+            </div>
+            <p class="dest-card__location">
+              <svg viewBox="0 0 16 16" fill="none" class="dest-card__pin" aria-hidden="true">
+                <path d="M8 1.5C5.51 1.5 3.5 3.51 3.5 6c0 3.75 4.5 8.5 4.5 8.5S12.5 9.75 12.5 6c0-2.49-2.01-4.5-4.5-4.5zm0 6.08c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" fill="currentColor"/>
+              </svg>
+              {{ dest.location }}
+            </p>
+          </div>
+        </article>
+      }
+    </div>
+
+    <div class="explore__cta">
+      <button class="btn btn--outline" type="button" (click)="modal.open('login')">
+        Voir plus de guides
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ───────────────────────────────────────── -->
+<section class="testimonials">
+  <div class="section__inner testimonials__inner">
+    <!-- Left -->
+    <div class="testimonials__left">
+      <span class="section__tag">Témoignages</span>
+      <h2 class="section__title">
+        Ce que nos voyageurs<br>disent de Journeo
+      </h2>
+
+      <div class="review-card">
+        <div class="review-card__stars" aria-label="5 étoiles">
+          @for (star of starsArray(); track star) {
+            <svg class="review-card__star" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8 1l1.8 3.6L14 5.2l-3 2.9.7 4.1L8 10.1l-3.7 2.1.7-4.1-3-2.9 4.2-.6z" fill="#FF6B2B"/>
+            </svg>
+          }
+        </div>
+        <p class="review-card__text">
+          « Journeo a rendu notre voyage absolument magique. Les itinéraires étaient détaillés,
+          les activités parfaitement organisées et les destinations magnifiques. Je recommande
+          vivement à tous les passionnés de voyage ! »
+        </p>
+        <div class="review-card__author">
+          <img
+            class="review-card__avatar"
+            src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100"
+            alt="Sophie Martin">
+          <div>
+            <strong class="review-card__name">Sophie Martin</strong>
+            <span class="review-card__role">Voyageuse</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right -->
+    <div class="testimonials__right" aria-hidden="true">
+      <div class="testimonials__img-wrap">
+        <img
+          class="testimonials__img"
+          src="https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=700"
+          alt="Voyage en montagne">
+        <button class="testimonials__play" type="button" aria-label="Voir la vidéo">
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="12" fill="#FF6B2B"/>
+            <path d="M10 8l6 4-6 4V8z" fill="white"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── BANNIÈRE PROMO ─────────────────────────────────────── -->
+<section class="discount">
+  <div class="discount__inner">
+    <div class="discount__text">
+      <h2 class="discount__title">
+        Accédez gratuitement à nos guides<br>
+        et partez à l'aventure
+      </h2>
+      <button class="btn btn--white" type="button" (click)="modal.open('register')">
+        Commencer maintenant
+      </button>
+    </div>
+    <div class="discount__image" aria-hidden="true">
+      <img
+        src="https://images.pexels.com/photos/1285625/pexels-photo-1285625.jpeg?auto=compress&cs=tinysrgb&w=600"
+        alt="Aventure voyage">
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ─────────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="footer__inner">
+    <div class="footer__brand">
+      <a class="nav__logo" href="#">
+        <svg class="nav__logo-icon" viewBox="0 0 32 32" fill="none">
+          <rect width="32" height="32" rx="9" fill="#FF6B2B"/>
+          <circle cx="9" cy="22" r="2.5" fill="white"/>
+          <circle cx="23" cy="10" r="2.5" fill="white"/>
+          <path d="M9 19.5 C9 15 14 17 16 14 C18 11 20 10 23 12.5"
+                stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+          <circle cx="23" cy="10" r="4" stroke="white" stroke-width="1.5" fill="none"/>
+          <circle cx="23" cy="10" r="1.5" fill="white"/>
+        </svg>
+        <span class="nav__logo-text footer__logo-text">Journeo</span>
+      </a>
+      <p class="footer__tagline">Planifiez vos voyages avec confiance et découvrez de nouveaux horizons à chaque aventure.</p>
+      <div class="footer__socials">
+        <a class="footer__social" href="#" aria-label="Facebook">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+        </a>
+        <a class="footer__social" href="#" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+          </svg>
+        </a>
+        <a class="footer__social" href="#" aria-label="Twitter">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer__col">
+      <h4 class="footer__col-title">Application</h4>
+      <ul class="footer__links">
+        <li><a class="footer__link" href="#">Fonctionnalités</a></li>
+        <li><a class="footer__link" href="#">Destinations</a></li>
+        <li><a class="footer__link" href="#">Guides</a></li>
+        <li><a class="footer__link" href="#">Tarifs</a></li>
+      </ul>
+    </div>
+
+    <div class="footer__col">
+      <h4 class="footer__col-title">Entreprise</h4>
+      <ul class="footer__links">
+        <li><a class="footer__link" href="#">À propos</a></li>
+        <li><a class="footer__link" href="#">Blog</a></li>
+        <li><a class="footer__link" href="#">Carrières</a></li>
+        <li><a class="footer__link" href="#">Presse</a></li>
+      </ul>
+    </div>
+
+    <div class="footer__col">
+      <h4 class="footer__col-title">Support</h4>
+      <ul class="footer__links">
+        <li><a class="footer__link" href="#">Centre d'aide</a></li>
+        <li><a class="footer__link" href="#">Sécurité</a></li>
+        <li><a class="footer__link" href="#">Conditions</a></li>
+        <li><a class="footer__link" href="#">Confidentialité</a></li>
+      </ul>
+    </div>
+
+    <div class="footer__col">
+      <h4 class="footer__col-title">Destinations</h4>
+      <ul class="footer__links">
+        <li><a class="footer__link" href="#">Europe</a></li>
+        <li><a class="footer__link" href="#">Asie</a></li>
+        <li><a class="footer__link" href="#">Amériques</a></li>
+        <li><a class="footer__link" href="#">Océanie</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer__bottom">
+    <p>© 2024 Journeo. Tous droits réservés.</p>
+  </div>
+</footer>
+
+<!-- Auth modal -->
+<app-auth-modal></app-auth-modal>

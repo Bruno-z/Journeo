@@ -58,8 +58,10 @@ export class AuthModalComponent {
   registerSuccess = signal(false);
 
   registerForm = this.fb.group({
-    email:    ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    firstName: ['', Validators.required],
+    lastName:  ['', Validators.required],
+    email:     ['', [Validators.required, Validators.email]],
+    password:  ['', [Validators.required, Validators.minLength(6)]],
   });
 
   submitRegister(): void {
@@ -69,8 +71,8 @@ export class AuthModalComponent {
     }
     this.registerLoading.set(true);
     this.registerError.set(null);
-    const { email, password } = this.registerForm.value;
-    this.usersService.create({ email: email!, password: password!, role: 'USER' }).subscribe({
+    const { firstName, lastName, email, password } = this.registerForm.value;
+    this.usersService.create({ firstName: firstName!, lastName: lastName!, email: email!, password: password!, role: 'USER' }).subscribe({
       next: () => {
         this.registerSuccess.set(true);
         this.registerLoading.set(false);

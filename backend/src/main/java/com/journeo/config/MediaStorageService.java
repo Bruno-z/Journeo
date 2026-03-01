@@ -38,10 +38,16 @@ public class MediaStorageService {
         String originalFilename = file.getOriginalFilename();
         String extension = "";
         if (originalFilename != null && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            // Assainir l'extension : conserver uniquement le point + caractères alphanumériques
+            String raw = originalFilename.substring(originalFilename.lastIndexOf("."));
+            extension = raw.replaceAll("[^a-zA-Z0-9.]", "");
         }
         String uniqueFileName = UUID.randomUUID() + extension;
-        Path targetPath = uploadPath.resolve(uniqueFileName);
+        Path targetPath = uploadPath.resolve(uniqueFileName).normalize();
+        // Protection path traversal : le chemin résolu doit rester dans uploadPath
+        if (!targetPath.startsWith(uploadPath)) {
+            throw new IllegalArgumentException("Chemin de fichier invalide : " + uniqueFileName);
+        }
         try {
             Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
@@ -53,6 +59,9 @@ public class MediaStorageService {
     public Resource load(String fileName) {
         try {
             Path filePath = uploadPath.resolve(fileName).normalize();
+            if (!filePath.startsWith(uploadPath)) {
+                throw new IllegalArgumentException("Chemin de fichier invalide : " + fileName);
+            }
             Resource resource = new UrlResource(filePath.toUri());
             if (resource.exists() && resource.isReadable()) {
                 return resource;
@@ -65,6 +74,9 @@ public class MediaStorageService {
 
     public void delete(String fileName) {
         Path filePath = uploadPath.resolve(fileName).normalize();
+        if (!filePath.startsWith(uploadPath)) {
+            throw new IllegalArgumentException("Chemin de fichier invalide : " + fileName);
+        }
         try {
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
