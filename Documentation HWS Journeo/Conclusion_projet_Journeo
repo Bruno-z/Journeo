@@ -1,0 +1,90 @@
+# Conclusion — Projet Journeo
+
+## 🧭 Retour global sur le projet
+
+Ce projet a été une expérience particulièrement enrichissante et motivante.  
+Même si je n’ai pas pu y consacrer autant de temps que prévu en début de semaine en raison d’obligations personnelles, notamment familiales, j’ai pris beaucoup de plaisir à travailler dessus et il m’a permis d’explorer de nouvelles approches de développement.
+
+Il s’agissait notamment de ma **première expérience de vibe coding**, une méthode que je connaissais seulement en théorie à travers des vidéos et des retours d’expérience, mais que je n’avais encore jamais pratiquée concrètement dans un projet réel.
+
+---
+
+## 🤖 Découverte du développement assisté par IA
+
+Dans ce cadre, j’ai découvert et expérimenté des outils comme **CodeClode** et **Gemini**. Cette découverte a été particulièrement intéressante, car elle met en évidence le potentiel réel des assistants IA dans un workflow de développement moderne.
+
+Ces outils permettent notamment :
+
+- d’accélérer certaines phases de développement,
+- de structurer plus proprement le code,
+- de faciliter l’écriture des tests,
+- d’améliorer la documentation,
+- et de maintenir une organisation claire du projet (Git, GitHub et architecture globale).
+
+Cependant, cette expérience m’a également appris que l’efficacité de ces outils dépend fortement de la précision des instructions fournies. Plus la vision du projet est claire en amont, plus les résultats sont pertinents et exploitables.
+
+---
+
+## 🧠 Apprentissage méthodologique
+
+L’un des principaux enseignements de ce projet concerne l’importance de la phase de conception.
+
+Avec le recul, plusieurs ajustements tardifs auraient pu être évités avec une réflexion plus approfondie en amont. Par exemple, je me suis rendu compte très tardivement qu’aucune date de création n’était enregistrée lors de la création d’un guide, alors qu’il s’agit d’une information essentielle dans le modèle de données.
+
+Ce type d’oubli montre que vouloir avancer trop rapidement sans vision globale peut entraîner :
+
+- des allers-retours techniques,
+- des modifications structurelles tardives,
+- et une perte de temps sur des éléments pourtant fondamentaux.
+
+Cette expérience renforce donc l’importance de définir clairement les besoins fonctionnels avant de commencer l’implémentation.
+
+---
+
+## 🎨 Réflexion autour du design et de l’UX
+
+Une part importante du temps a été consacrée à la refonte visuelle de l’application.  
+Cette phase a été plus longue que prévu principalement parce que la direction graphique n’était pas suffisamment définie dès le départ.
+
+Ne sachant pas précisément vers quel résultat visuel tendre, j’ai effectué plusieurs refontes successives afin d’obtenir une interface plus cohérente et plus impactante.
+
+Certaines contraintes techniques ont également influencé les choix UX. Par exemple, le fait qu’un utilisateur ne puisse accéder qu’aux guides auxquels il est invité est une contrainte logique côté backend, mais elle crée visuellement des espaces vides que j’aurais souhaité traiter différemment pour améliorer l’expérience utilisateur.
+
+---
+
+## 🔧 Axes d’amélioration et perspectives
+
+Le projet est aujourd’hui suffisamment avancé pour être présenté et partagé, mais plusieurs améliorations sont déjà identifiées.
+
+### Refactorisation technique
+
+Si je devais reprendre le projet aujourd’hui, je mettrais en place :
+
+- une gestion globale des styles frontend dès le départ,
+- l’utilisation de **Tailwind CSS** plutôt qu’Air CSS,
+- une meilleure anticipation du modèle de données,
+- une refactorisation de certaines parties du code afin d’améliorer la lisibilité et la maintenabilité.
+
+### Fonctionnalités à compléter
+
+Plusieurs fonctionnalités restent à approfondir ou finaliser :
+
+- implémentation complète du système de notation des commentaires (actuellement uniquement visuel),
+- tri et classement des commentaires selon les likes,
+- gestion des réponses directes entre utilisateurs,
+- amélioration du système de recherche automatique d’images,
+- enrichissement des interactions sociales autour des guides.
+
+---
+
+## 🎯 Bilan personnel
+
+Ce projet représente une étape importante dans mon apprentissage. Il m’a permis de progresser à plusieurs niveaux :
+
+- techniquement, sur l’architecture backend et frontend,
+- méthodologiquement, sur la planification et l’organisation d’un projet,
+- et personnellement, dans ma manière d’aborder la conception logicielle.
+
+Il met également en évidence une réalité essentielle du développement : créer une application fonctionnelle n’est qu’une première étape. La qualité finale repose ensuite sur l’itération, la remise en question et l’amélioration continue.
+
+Cette expérience me donne aujourd’hui une vision beaucoup plus claire de la manière dont j’aborderais un projet similaire à l’avenir, avec davantage de préparation initiale, une direction produit mieux définie et des choix techniques anticipés dès le début du développement.

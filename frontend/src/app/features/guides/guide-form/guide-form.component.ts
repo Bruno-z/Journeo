@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { from } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
 import { GuidesService } from '../../../core/services/guides.service';
@@ -10,7 +10,7 @@ import { getCoverImage, fetchWikipediaCover } from '../../../core/utils/cover-im
 
 @Component({
   selector: 'app-guide-form',
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './guide-form.component.html',
   styleUrl: './guide-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,25 +21,34 @@ export class GuideFormComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
-  loading  = signal(false);
-  saving   = signal(false);
-  error    = signal<string | null>(null);
-  editId   = signal<number | null>(null);
-  isEdit   = computed(() => this.editId() !== null);
+  loading = signal(false);
+  saving  = signal(false);
+  error   = signal<string | null>(null);
+  editId  = signal<number | null>(null);
+  isEdit  = computed(() => this.editId() !== null);
 
+  // ── Wizard navigation ──────────────────────────────────────────────────────
+  currentStep = signal(1);
+  animDir     = signal<'forward' | 'back'>('forward');
+
+  canProceed = computed(() => {
+    if (this.currentStep() === 1)
+      return (this.form.get('titre')?.value?.trim().length ?? 0) >= 2;
+    return true;
+  });
+
+  // ── Cover preview ──────────────────────────────────────────────────────────
   previewSaison = signal('ETE');
-
-  // Async cover: starts with default, updated via Wikipedia lookup
   coverPreview  = signal<string>(getCoverImage('voyage', 'ETE'));
   coverLoading  = signal(false);
 
-  // Labels pour les tuiles
-  readonly saisonLabels      = SAISON_LABELS;
-  readonly mobiliteLabels    = MOBILITE_LABELS;
-  readonly publicCibleLabels = PUBLIC_CIBLE_LABELS;
-  readonly saisons   = Object.keys(SAISON_LABELS) as Array<keyof typeof SAISON_LABELS>;
-  readonly mobilites = Object.keys(MOBILITE_LABELS) as Array<keyof typeof MOBILITE_LABELS>;
-  readonly cibles    = Object.keys(PUBLIC_CIBLE_LABELS) as Array<keyof typeof PUBLIC_CIBLE_LABELS>;
+  // ── Labels and option keys ─────────────────────────────────────────────────
+  readonly saisonLabels: any      = SAISON_LABELS;
+  readonly mobiliteLabels: any    = MOBILITE_LABELS;
+  readonly publicCibleLabels: any = PUBLIC_CIBLE_LABELS;
+  readonly saisons: any[]   = Object.keys(SAISON_LABELS);
+  readonly mobilites: any[] = Object.keys(MOBILITE_LABELS);
+  readonly cibles: any[]    = Object.keys(PUBLIC_CIBLE_LABELS);
 
   form = this.fb.group({
     titre:       ['', [Validators.required, Validators.minLength(2)]],
@@ -51,7 +60,7 @@ export class GuideFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    // Live cover preview: debounce typing, switchMap cancels in-flight requests
+    // Live cover: debounce title changes, fetch Wikipedia or fall back to Unsplash
     this.form.get('titre')!.valueChanges.pipe(
       debounceTime(600),
       distinctUntilChanged(),
@@ -64,6 +73,7 @@ export class GuideFormComponent implements OnInit {
 
     this.form.get('saison')?.valueChanges.subscribe(v => this.previewSaison.set(v ?? 'ETE'));
 
+    // Edit mode: load existing guide data
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.editId.set(Number(id));
@@ -79,7 +89,6 @@ export class GuideFormComponent implements OnInit {
             pourQui:     guide.pourQui,
           });
           this.previewSaison.set(guide.saison);
-          // Load cover for existing guide title immediately
           this.coverLoading.set(true);
           fetchWikipediaCover(guide.titre, guide.saison).then(url => {
             this.coverPreview.set(url);
@@ -93,6 +102,25 @@ export class GuideFormComponent implements OnInit {
         },
       });
     }
+  }
+
+  goNext(): void {
+    if (!this.canProceed()) {
+      this.form.get('titre')?.markAsTouched();
+      return;
+    }
+    this.animDir.set('forward');
+    this.currentStep.update(s => Math.min(s + 1, 5));
+  }
+
+  goBack(): void {
+    this.animDir.set('back');
+    this.currentStep.update(s => Math.max(s - 1, 1));
+  }
+
+  adjustJours(delta: number): void {
+    const current = (this.form.get('jours')?.value as number) ?? 1;
+    this.form.get('jours')?.setValue(Math.max(1, Math.min(30, current + delta)));
   }
 
   submit(): void {

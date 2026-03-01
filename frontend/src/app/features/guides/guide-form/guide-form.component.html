@@ -1,141 +1,266 @@
-<div class="editor-layout">
-  
-  <!-- ════════ GAUCHE : FORMULAIRE ════════ -->
-  <div class="editor-main">
-    <div class="editor-header">
-      <h1 class="editor-title">{{ isEdit() ? 'Modifier le guide' : 'Créer un guide' }}</h1>
-      <p class="editor-subtitle">Partagez votre expérience et inspirez la communauté Journeo.</p>
+<form class="wizard"
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      [class.wizard--forward]="animDir() === 'forward'"
+      [class.wizard--back]="animDir() === 'back'">
+
+  <!-- ── Topbar fixe : Annuler + barre de progression + compteur ── -->
+  <div class="wizard__topbar">
+    <button class="wizard__cancel" type="button" (click)="cancel()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <path d="M19 12H5m0 0l7 7m-7-7l7-7"/>
+      </svg>
+      Annuler
+    </button>
+
+    <div class="wizard__progress-track"
+         role="progressbar"
+         [attr.aria-valuenow]="currentStep()"
+         aria-valuemin="1"
+         aria-valuemax="5">
+      <div class="wizard__progress-fill"
+           [style.width.%]="(currentStep() / 5) * 100"></div>
     </div>
 
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      
-      <!-- Titre -->
-      <div class="form-group">
-        <label class="form-label">Titre du voyage</label>
-        <input 
-          type="text" 
-          class="input-huge" 
-          formControlName="titre"
-          placeholder="Ex: Week-end à Rome..." 
-          autofocus
-        >
-      </div>
-
-      <!-- Description -->
-      <div class="form-group">
-        <label class="form-label">L'expérience en quelques mots</label>
-        <textarea 
-          class="input-area" 
-          rows="3" 
-          formControlName="description"
-          placeholder="Qu'est-ce qui rend ce voyage unique ? Décrivez l'ambiance..."
-        ></textarea>
-      </div>
-
-      <!-- Saison (Tuiles) -->
-      <div class="form-group">
-        <label class="form-label">Saison idéale</label>
-        <div class="tiles-grid">
-          @for (key of saisons; track key) {
-            <div 
-              class="tile" 
-              [class.selected]="form.value.saison === key" 
-              (click)="setVal('saison', key)"
-            >
-              <div class="tile__icon">
-                @if(key === 'ETE'){ ☀️ } @else if(key === 'HIVER'){ ❄️ } @else if(key === 'PRINTEMPS'){ 🌸 } @else { 🍂 }
-              </div>
-              <div class="tile__label">{{ saisonLabels[key] }}</div>
-            </div>
-          }
-        </div>
-      </div>
-
-      <!-- Grid 2 colonnes pour Mobilité & Cible -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-        
-        <div class="form-group">
-          <label class="form-label">Mobilité</label>
-          <div class="tiles-grid" style="grid-template-columns: 1fr 1fr;">
-            @for (key of mobilites; track key) {
-              <div class="tile" [class.selected]="form.value.mobilite === key" (click)="setVal('mobilite', key)">
-                <div class="tile__icon">
-                  @if(key === 'A_PIED'){ 🚶 } @else if(key === 'VELO'){ 🚲 } @else if(key === 'VOITURE'){ 🚗 } @else { 🚌 }
-                </div>
-                <div class="tile__label">{{ mobiliteLabels[key] }}</div>
-              </div>
-            }
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Pour qui ?</label>
-          <div class="tiles-grid" style="grid-template-columns: 1fr 1fr;">
-            @for (key of cibles; track key) {
-              <div class="tile" [class.selected]="form.value.pourQui === key" (click)="setVal('pourQui', key)">
-                <div class="tile__icon">
-                  @if(key === 'FAMILLE'){ 👨‍👩‍👧‍👦 } @else if(key === 'COUPLE'){ 💑 } @else if(key === 'ENTRE_AMIS'){ 👯 } @else { 🎒 }
-                </div>
-                <div class="tile__label">{{ publicCibleLabels[key] }}</div>
-              </div>
-            }
-          </div>
-        </div>
-      </div>
-
-      <!-- Durée -->
-      <div class="form-group">
-        <label class="form-label">Durée (jours)</label>
-        <div style="display: flex; align-items: center; gap: 1rem;">
-          <input type="range" formControlName="jours" min="1" max="15" style="flex: 1; accent-color: #E85A1E;">
-          <span style="font-size: 1.5rem; font-weight: 800; color: #E85A1E; min-width: 3ch;">{{ form.value.jours }}j</span>
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="actions-bar">
-        <button type="submit" class="btn btn--primary btn-lg" [disabled]="form.invalid || saving() || loading()">
-          @if(saving()){ <span class="spinner"></span> } 
-          {{ isEdit() ? 'Enregistrer' : 'Créer le guide' }}
-        </button>
-        <button type="button" (click)="cancel()" class="btn btn--ghost btn-lg">Annuler</button>
-      </div>
-
-    </form>
+    <span class="wizard__counter">{{ currentStep() }} / 5</span>
   </div>
 
-  <!-- ════════ DROITE : PREVIEW ════════ -->
-  <div class="editor-sidebar">
-    <div class="preview-badge">Aperçu en direct</div>
-    
-    <!-- La Carte -->
-    <div class="guide-card">
-      <div class="guide-card__img-wrap">
-        <img [src]="coverPreview()" class="guide-card__img" alt="Cover">
-        <div class="guide-card__overlay"></div>
-        @if (form.value.saison) {
-          <span class="guide-card__season">{{ saisonLabels[form.value.saison!] }}</span>
+  <!-- ════════════════════════════════════════════════
+       STEP 1 — Titre
+       Fond : cover Wikipedia flouté + overlay sombre
+       ════════════════════════════════════════════════ -->
+  @if (currentStep() === 1) {
+    <div class="wizard__step wizard__step--cover"
+         [style.--cover-url]="'url(' + coverPreview() + ')'">
+
+      <p class="step-label">Étape 1 / 5</p>
+      <h2 class="step-question step-question--light">
+        {{ isEdit() ? 'Modifiez le titre de votre guide' : 'Commencez par nommer votre guide' }}
+      </h2>
+
+      <input
+        class="cover-input"
+        type="text"
+        formControlName="titre"
+        placeholder="Ex : Week-end romantique à Rome"
+        autocomplete="off"
+        autofocus
+      >
+
+      @if (form.get('titre')?.invalid && form.get('titre')?.touched) {
+        <span class="cover-error">Le titre doit faire au moins 2 caractères.</span>
+      }
+
+      <div class="step-nav">
+        <button type="button" class="btn-next btn-next--light" (click)="goNext()">
+          {{ isEdit() ? 'Suivant' : 'Commencer' }}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path d="M5 12h14m-7-7 7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ════════════════════════════════════════════════
+       STEP 2 — Saison
+       4 grandes cartes visuelles — clic = sélection + avance
+       ════════════════════════════════════════════════ -->
+  @if (currentStep() === 2) {
+    <div class="wizard__step">
+      <p class="step-label">Étape 2 / 5</p>
+      <h2 class="step-question">Quelle est la saison idéale ?</h2>
+
+      <div class="season-grid">
+        @for (key of saisons; track key) {
+          <button
+            type="button"
+            class="season-card"
+            [class.season-card--active]="form.value.saison === key"
+            (click)="setVal('saison', key); goNext()"
+          >
+            <span class="season-card__icon">
+              @if (key === 'ETE')        { ☀️ }
+              @else if (key === 'HIVER')      { ❄️ }
+              @else if (key === 'PRINTEMPS')  { 🌸 }
+              @else                           { 🍂 }
+            </span>
+            <span class="season-card__label">{{ saisonLabels[key] }}</span>
+          </button>
         }
       </div>
-      <div class="guide-card__body">
-        <h3 class="guide-card__title">{{ form.value.titre || 'Titre du guide...' }}</h3>
-        <div class="guide-card__chips">
-          @if (form.value.mobilite) {
-            <span class="chip chip--blue">{{ mobiliteLabels[form.value.mobilite!] }}</span>
-          }
-          @if (form.value.pourQui) {
-            <span class="chip chip--green">{{ publicCibleLabels[form.value.pourQui!] }}</span>
-          }
-          @if (form.value.jours) {
-            <span class="chip chip--orange">{{ form.value.jours }}j</span>
-          }
-        </div>
+
+      <div class="step-nav step-nav--back-only">
+        <button type="button" class="btn-back" (click)="goBack()">← Retour</button>
       </div>
     </div>
+  }
 
-    <div style="margin-top: 2rem; text-align: center; color: #9ca3af; font-size: 0.9rem;">
-      <p>Cette carte sera visible par les autres utilisateurs sur la page d'accueil.</p>
+  <!-- ════════════════════════════════════════════════
+       STEP 3 — Mobilité + Pour qui
+       2 colonnes de tuiles côte à côte
+       ════════════════════════════════════════════════ -->
+  @if (currentStep() === 3) {
+    <div class="wizard__step">
+      <p class="step-label">Étape 3 / 5</p>
+      <h2 class="step-question">Comment voyager, et avec qui ?</h2>
+
+      <div class="two-col-tiles">
+        <div class="tile-group">
+          <h3 class="tile-group__label">Mode de transport</h3>
+          <div class="tiles-list">
+            @for (key of mobilites; track key) {
+              <button
+                type="button"
+                class="tile tile--sm"
+                [class.tile--active]="form.value.mobilite === key"
+                (click)="setVal('mobilite', key)"
+              >
+                <span class="tile__icon">
+                  @if (key === 'A_PIED')  { 🚶 }
+                  @else if (key === 'VELO')    { 🚲 }
+                  @else if (key === 'VOITURE') { 🚗 }
+                  @else                        { 🚌 }
+                </span>
+                <span class="tile__label">{{ mobiliteLabels[key] }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="tile-group">
+          <h3 class="tile-group__label">Pour qui ?</h3>
+          <div class="tiles-list">
+            @for (key of cibles; track key) {
+              <button
+                type="button"
+                class="tile tile--sm"
+                [class.tile--active]="form.value.pourQui === key"
+                (click)="setVal('pourQui', key)"
+              >
+                <span class="tile__icon">
+                  @if (key === 'FAMILLE')     { 👨‍👩‍👧‍👦 }
+                  @else if (key === 'COUPLE')      { 💑 }
+                  @else if (key === 'ENTRE_AMIS')  { 👯 }
+                  @else                             { 🎒 }
+                </span>
+                <span class="tile__label">{{ publicCibleLabels[key] }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <button type="button" class="btn-back" (click)="goBack()">← Retour</button>
+        <button type="button" class="btn-next" (click)="goNext()">
+          Suivant
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path d="M5 12h14m-7-7 7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
     </div>
-  </div>
+  }
 
-</div>
+  <!-- ════════════════════════════════════════════════
+       STEP 4 — Durée
+       Chiffre géant + boutons − / +
+       ════════════════════════════════════════════════ -->
+  @if (currentStep() === 4) {
+    <div class="wizard__step">
+      <p class="step-label">Étape 4 / 5</p>
+      <h2 class="step-question">Combien de jours dure ce voyage ?</h2>
+
+      <div class="duration-picker">
+        <button
+          type="button"
+          class="duration-btn"
+          (click)="adjustJours(-1)"
+          [disabled]="(form.value.jours ?? 1) <= 1"
+          aria-label="Diminuer"
+        >−</button>
+
+        <div class="duration-display">
+          <span class="duration-number">{{ form.value.jours }}</span>
+          <span class="duration-unit">jour{{ (form.value.jours ?? 1) > 1 ? 's' : '' }}</span>
+        </div>
+
+        <button
+          type="button"
+          class="duration-btn"
+          (click)="adjustJours(1)"
+          [disabled]="(form.value.jours ?? 1) >= 30"
+          aria-label="Augmenter"
+        >+</button>
+      </div>
+
+      <div class="step-nav">
+        <button type="button" class="btn-back" (click)="goBack()">← Retour</button>
+        <button type="button" class="btn-next" (click)="goNext()">
+          Suivant
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path d="M5 12h14m-7-7 7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ════════════════════════════════════════════════
+       STEP 5 — Description + Résumé + Publier
+       ════════════════════════════════════════════════ -->
+  @if (currentStep() === 5) {
+    <div class="wizard__step wizard__step--summary">
+      <p class="step-label">Étape 5 / 5 — Dernière étape !</p>
+      <h2 class="step-question">Ajoutez une description <span class="step-optional">(optionnel)</span></h2>
+
+      <textarea
+        class="summary-textarea"
+        rows="3"
+        formControlName="description"
+        placeholder="Donnez envie aux voyageurs en quelques mots..."
+      ></textarea>
+
+      <!-- Aperçu de la carte guide -->
+      <div class="summary-preview">
+        <div class="guide-card-preview">
+          <div class="card-image">
+            <img [src]="coverPreview()" alt="Aperçu de la cover" class="img-cover">
+            <div class="card-overlay"></div>
+            @if (form.value.saison) {
+              <span class="badge-saison">{{ saisonLabels[form.value.saison!] }}</span>
+            }
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">{{ form.value.titre || 'Titre du voyage...' }}</h3>
+            <div class="card-tags">
+              @if (form.value.mobilite) {
+                <span class="tag tag--blue">{{ mobiliteLabels[form.value.mobilite!] }}</span>
+              }
+              @if (form.value.pourQui) {
+                <span class="tag tag--green">{{ publicCibleLabels[form.value.pourQui!] }}</span>
+              }
+              @if (form.value.jours) {
+                <span class="tag tag--orange">{{ form.value.jours }}j</span>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @if (error()) {
+        <p class="summary-error">{{ error() }}</p>
+      }
+
+      <div class="step-nav">
+        <button type="button" class="btn-back" (click)="goBack()">← Retour</button>
+        <button type="submit" class="btn-submit" [disabled]="form.invalid || saving() || loading()">
+          @if (saving()) { <span class="spinner"></span> }
+          {{ isEdit() ? 'Enregistrer les modifications' : 'Publier le guide' }}
+        </button>
+      </div>
+    </div>
+  }
+
+</form>

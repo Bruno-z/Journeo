@@ -1,0 +1,96 @@
+# Compte rendu d’avancement – Projet Journeo
+
+## Jour 3 / 5 — Refonte visuelle & Améliorations Backend–Frontend
+
+## État du travail
+
+À partir de jeudi, une première version **fonctionnelle** de l’application était opérationnelle.  
+Les principales fonctionnalités étaient en place et permettaient déjà une utilisation correcte du projet.
+
+Cependant, malgré cet état fonctionnel, le rendu visuel ne correspondait pas encore au niveau de qualité attendu. Certaines interfaces restaient peu satisfaisantes d’un point de vue ergonomique et esthétique.
+
+J’ai donc décidé d’engager une **refonte progressive** plutôt que de simplement continuer à ajouter des fonctionnalités.
+
+---
+
+## 🎨 Refonte du frontend
+
+L’objectif principal était d’améliorer :
+
+- la lisibilité globale
+- l’impact visuel
+- la cohérence entre les écrans
+- l’expérience utilisateur
+
+Plusieurs itérations ont été nécessaires. Certaines versions intermédiaires ne me satisfaisaient pas, ce qui m’a amené à retravailler plusieurs fois certains composants.
+
+Cette phase a été fortement guidée par mon sens du perfectionnisme : une fois une base fonctionnelle atteinte, il devenait important pour moi d’améliorer les détails afin d’obtenir un rendu plus propre et plus professionnel.
+
+---
+
+## ⚙️ Améliorations Backend pour enrichir le Frontend
+
+La refonte visuelle a également mis en évidence un besoin :  
+le frontend manquait parfois d’informations pour afficher correctement certains éléments.
+
+J’ai donc profité de cette phase pour effectuer des améliorations côté backend afin de :
+
+- exposer davantage de données utiles au frontend
+- simplifier certains affichages
+- améliorer la cohérence entre données et interface utilisateur
+
+Cette approche m’a permis d’avoir un frontend plus riche sans complexifier inutilement la logique côté client.
+
+---
+
+## 🤔 Choix de progression
+
+Je suis conscient que certaines de ces améliorations auraient pu être réalisées plus tôt dans le projet.
+
+Cependant, mon choix initial était volontaire :
+
+1. vérifier d’abord ma capacité à produire une version fonctionnelle complète
+2. valider les bases techniques
+3. seulement ensuite affiner et optimiser
+
+Cette méthode m’a permis de sécuriser l’avancement avant d’entrer dans une phase d’amélioration qualitative.
+
+---
+
+## 🧪 Tests & Finitions
+
+Durant cette période, j’ai également :
+
+- peaufiné de nombreux détails d’interface
+- ajouté des tests côté frontend
+- amélioré la cohérence visuelle globale
+- renforcé l’impact graphique tout en respectant au mieux la demande initiale
+
+L’idée principale était de **prendre davantage de temps pour bien faire les choses**, plutôt que d’avancer rapidement avec une base imparfaite.
+
+---
+
+## 📊 Résultat actuel
+
+À l’issue de cette phase :
+
+- ✅ Application pleinement fonctionnelle
+- ✅ Interface visuelle nettement améliorée
+- ✅ Backend enrichi pour de meilleurs rendus frontend
+- ✅ Tests frontend ajoutés
+- ✅ Expérience utilisateur plus claire et plus percutante
+
+---
+
+## 🎯 Bilan personnel
+
+Cette étape marque une transition importante entre une application simplement fonctionnelle et une application plus aboutie visuellement et structurellement.
+
+Principaux apprentissages :
+
+- une base fonctionnelle n’est qu’une première étape
+- le design révèle souvent des besoins backend invisibles au départ
+- prendre le temps de refactoriser améliore fortement la qualité finale
+- l’itération progressive est essentielle pour atteindre un rendu satisfaisant
+
+Cette refonte pose désormais des bases plus solides pour la suite du développement et les futures améliorations du projet Journeo.

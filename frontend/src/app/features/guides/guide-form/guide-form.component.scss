@@ -1,267 +1,602 @@
-// Variables locales
-$primary: #E85A1E;
-$bg-light: #f9fafb;
-$border: #e5e7eb;
-$text-dark: #111827;
-$text-muted: #6b7280;
+// ── Variables ──────────────────────────────────────────────────────────────
+$primary:       #E85A1E;
+$primary-hover: #d64d18;
+$text-main:     #111827;
+$text-muted:    #6b7280;
+$border:        #e5e7eb;
+$radius:        12px;
 
-.editor-layout {
+// ── Host ───────────────────────────────────────────────────────────────────
+:host {
+  display: block;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// WIZARD CONTAINER — fullscreen overlay au-dessus du layout
+// ════════════════════════════════════════════════════════════════════════════
+
+.wizard {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+// ── Animations de slide ────────────────────────────────────────────────────
+// Le @if Angular re-crée l'élément .wizard__step à chaque changement
+// → l'animation CSS joue automatiquement au montage du nouvel élément.
+
+.wizard--forward .wizard__step {
+  animation: slide-in-right 0.38s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.wizard--back .wizard__step {
+  animation: slide-in-left 0.38s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(56px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-56px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// TOPBAR
+// ════════════════════════════════════════════════════════════════════════════
+
+.wizard__topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 2rem;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid $border;
+  flex-shrink: 0;
+}
+
+.wizard__cancel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  border: none;
+  color: $text-muted;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  white-space: nowrap;
+  transition: color 0.2s, background 0.2s;
+
+  &:hover {
+    color: $text-main;
+    background: #f3f4f6;
+  }
+}
+
+.wizard__progress-track {
+  flex: 1;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.wizard__progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: $primary;
+  transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wizard__counter {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: $text-muted;
+  white-space: nowrap;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// STEP BASE — zone de contenu de chaque étape
+// ════════════════════════════════════════════════════════════════════════════
+
+.wizard__step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  overflow-y: auto;
+  text-align: center;
+}
+
+// ── Étiquette "Étape X / 5" ────────────────────────────────────────────────
+.step-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: $primary;
+  margin: 0 0 1rem 0;
+}
+
+// ── Question principale ────────────────────────────────────────────────────
+.step-question {
+  font-size: clamp(1.6rem, 4vw, 2.5rem);
+  font-weight: 800;
+  color: $text-main;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0 0 2.5rem 0;
+  max-width: 600px;
+
+  &--light { color: #fff; }
+}
+
+.step-optional {
+  font-size: 0.7em;
+  font-weight: 400;
+  color: $text-muted;
+}
+
+// ── Navigation (Retour / Suivant) ──────────────────────────────────────────
+.step-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2.5rem;
+
+  &--back-only {
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 640px;
+  }
+}
+
+.btn-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: $primary;
+  color: #fff;
+  border: none;
+  padding: 0.875rem 2rem;
+  border-radius: 99px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+
+  &:hover { background: $primary-hover; transform: translateY(-1px); }
+  &:active { transform: translateY(0); }
+
+  &--light {
+    background: #fff;
+    color: $text-main;
+
+    &:hover { background: #f9fafb; }
+  }
+}
+
+.btn-back {
+  background: transparent;
+  border: none;
+  color: $text-muted;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.875rem 1rem;
+  border-radius: 99px;
+  transition: color 0.2s;
+
+  &:hover { color: $text-main; }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// STEP 1 — Cover flouté en fond
+// ════════════════════════════════════════════════════════════════════════════
+
+.wizard__step--cover {
+  position: relative;
+  overflow: hidden;
+
+  // Image de fond (pseudo-element pour isoler le blur)
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -30px; // débordement pour masquer les bords du blur
+    background-image: var(--cover-url);
+    background-size: cover;
+    background-position: center;
+    filter: blur(18px);
+    z-index: 0;
+    transition: background-image 0.6s ease;
+  }
+
+  // Overlay sombre
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.58);
+    z-index: 1;
+  }
+
+  // Tout le contenu au-dessus de l'overlay
+  > * {
+    position: relative;
+    z-index: 2;
+  }
+}
+
+.cover-input {
+  width: 100%;
+  max-width: 580px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+  font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+  font-weight: 700;
+  text-align: center;
+  padding: 0.75rem 0;
+  outline: none;
+  letter-spacing: -0.02em;
+  transition: border-color 0.2s;
+
+  &::placeholder { color: rgba(255, 255, 255, 0.45); }
+  &:focus { border-bottom-color: rgba(255, 255, 255, 0.9); }
+}
+
+.cover-error {
+  color: #fca5a5;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  display: block;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// STEP 2 — Grille de saisons
+// ════════════════════════════════════════════════════════════════════════════
+
+.season-grid {
   display: grid;
-  grid-template-columns: 1fr 400px;
-  min-height: calc(100vh - 64px);
-  background-color: #ffffff;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  max-width: 680px;
+  width: 100%;
 
-  @media (max-width: 1024px) {
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.season-card {
+  background: #fff;
+  border: 2px solid $border;
+  border-radius: 16px;
+  padding: 1.75rem 1rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+
+  &:hover {
+    border-color: #fed7aa;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba($primary, 0.12);
+  }
+
+  &--active {
+    border-color: $primary;
+    background: #fff7ed;
+    box-shadow: 0 0 0 4px rgba($primary, 0.1);
+  }
+
+  &__icon { font-size: 2.5rem; line-height: 1; }
+
+  &__label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: $text-main;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// STEP 3 — 2 colonnes de tuiles
+// ════════════════════════════════════════════════════════════════════════════
+
+.two-col-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  max-width: 600px;
+  width: 100%;
+  text-align: left;
+
+  @media (max-width: 540px) {
     grid-template-columns: 1fr;
   }
 }
 
-/* ── Colonne Gauche : Formulaire ── */
-.editor-main {
-  padding: 4rem 10%;
-  max-width: 900px;
-  margin: 0 auto;
-  width: 100%;
+.tile-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  &__label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: $text-muted;
+    margin-bottom: 0.25rem;
+  }
 }
 
-.editor-header {
-  margin-bottom: 3rem;
+.tiles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.editor-title {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: $text-dark;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.5rem;
+// ── Tuile générique (réutilisée step 3) ────────────────────────────────────
+.tile {
+  appearance: none;
+  background: #fff;
+  border: 2px solid $border;
+  border-radius: $radius;
+  padding: 1rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  text-align: center;
+  color: $text-main;
+
+  &:hover { border-color: #fed7aa; }
+
+  &--active {
+    border-color: $primary;
+    background: #fff7ed;
+    color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+
+  &__icon { font-size: 1.25rem; }
+  &__label { font-weight: 600; font-size: 0.9rem; }
+
+  &--sm {
+    flex-direction: row;
+    text-align: left;
+    padding: 0.65rem 0.875rem;
+    gap: 0.5rem;
+
+    .tile__icon { width: 1.5rem; flex-shrink: 0; }
+  }
 }
 
-.editor-subtitle {
-  font-size: 1.1rem;
-  color: $text-muted;
-}
+// ════════════════════════════════════════════════════════════════════════════
+// STEP 4 — Durée picker
+// ════════════════════════════════════════════════════════════════════════════
 
-/* ── Inputs Modernes ── */
-.form-group {
-  margin-bottom: 2.5rem;
-}
-
-.form-label {
-  display: block;
-  font-size: 0.9rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #9ca3af;
+.duration-picker {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
   margin-bottom: 1rem;
 }
 
-.input-huge {
-  width: 100%;
-  border: none;
-  border-bottom: 2px solid $border;
-  font-size: 2rem;
-  font-weight: 700;
-  padding: 0.5rem 0;
-  color: $text-dark;
-  background: transparent;
-  transition: border-color 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: $primary;
-  }
-
-  &::placeholder {
-    color: #d1d5db;
-  }
-}
-
-.input-area {
-  width: 100%;
-  border: 1px solid $border;
-  border-radius: 12px;
-  padding: 1rem;
-  font-size: 1rem;
-  line-height: 1.6;
-  resize: vertical;
-  transition: all 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: $primary;
-    box-shadow: 0 0 0 4px rgba($primary, 0.1);
-  }
-}
-
-/* ── Tuiles de Sélection (Grid) ── */
-.tiles-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 1rem;
-}
-
-.tile {
-  border: 2px solid #f3f4f6;
-  border-radius: 16px;
-  padding: 1.5rem 1rem;
-  text-align: center;
+.duration-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid $border;
+  background: #fff;
+  font-size: 1.75rem;
+  font-weight: 300;
+  color: $text-main;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background: white;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
 
-  &:hover {
-    border-color: #fed7aa;
-    transform: translateY(-2px);
-  }
-
-  &.selected {
+  &:hover:not(:disabled) {
     border-color: $primary;
-    background-color: #fff7ed;
+    background: #fff7ed;
     color: $primary;
-    box-shadow: 0 4px 12px rgba($primary, 0.15);
+    transform: scale(1.08);
   }
 
-  &__icon {
-    font-size: 2rem;
-    margin-bottom: 0.25rem;
-  }
-
-  &__label {
-    font-weight: 600;
-    font-size: 0.95rem;
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
   }
 }
 
-/* ── Colonne Droite : Preview Sticky ── */
-.editor-sidebar {
-  background: $bg-light;
-  border-left: 1px solid $border;
-  padding: 3rem 2rem;
+.duration-display {
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-
-  @media (max-width: 1024px) {
-    display: none; // Masquer sur mobile/tablette
-  }
+  min-width: 100px;
 }
 
-.preview-badge {
-  background: $text-dark;
-  color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: 99px;
-  font-size: 0.75rem;
+.duration-number {
+  font-size: 5rem;
+  font-weight: 900;
+  color: $primary;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.duration-unit {
+  font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 2rem;
+  letter-spacing: 0.1em;
+  color: $text-muted;
 }
 
-/* ── Carte Preview (Style identique Dashboard) ── */
-.guide-card {
+// ════════════════════════════════════════════════════════════════════════════
+// STEP 5 — Résumé + Description
+// ════════════════════════════════════════════════════════════════════════════
+
+.wizard__step--summary {
+  justify-content: flex-start;
+  padding-top: 3rem;
+}
+
+.summary-textarea {
   width: 100%;
-  max-width: 340px;
+  max-width: 520px;
+  padding: 1rem;
+  border: 2px solid $border;
+  border-radius: $radius;
+  font-size: 1rem;
+  color: $text-main;
+  resize: vertical;
+  background: #fff;
+  outline: none;
+  font-family: inherit;
+  line-height: 1.6;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 4px rgba($primary, 0.08);
+  }
+
+  &::placeholder { color: #d1d5db; }
+}
+
+.summary-preview {
+  margin-top: 1.75rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+.summary-error {
+  margin-top: 1rem;
+  color: #dc2626;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+// ── Carte preview (style identique au dashboard) ───────────────────────────
+.guide-card-preview {
   background: white;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  transition: transform 0.3s;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -5px rgba(0, 0, 0, 0.04);
 
-  &__img-wrap {
-    height: 220px;
+  .card-image {
+    height: 180px;
     position: relative;
     background: $border;
+
+    .img-cover {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
+    }
+
+    .badge-saison {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 0.2rem 0.65rem;
+      border-radius: 99px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: $text-main;
+    }
   }
 
-  &__img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+  .card-content { padding: 1.25rem; }
 
-  &__overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
-  }
-
-  &__season {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 0.25rem 0.75rem;
-    border-radius: 99px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #1f2937;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  &__body {
-    padding: 1.5rem;
-  }
-
-  &__title {
-    font-size: 1.4rem;
+  .card-title {
+    font-size: 1.1rem;
     font-weight: 800;
-    color: $text-dark;
-    margin-bottom: 1rem;
+    color: $text-main;
+    margin: 0 0 0.75rem 0;
     line-height: 1.2;
+    text-align: left;
   }
 
-  &__chips {
+  .card-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 0.4rem;
+  }
+
+  .tag {
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+
+    &--orange { background: #fff7ed; color: #c2410c; }
+    &--blue   { background: #eff6ff; color: #1d4ed8; }
+    &--green  { background: #ecfdf5; color: #047857; }
   }
 }
 
-.chip {
-  padding: 0.25rem 0.6rem;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-
-  &--orange {
-    background: #fff7ed;
-    color: #c2410c;
-  }
-
-  &--blue {
-    background: #eff6ff;
-    color: #1d4ed8;
-  }
-
-  &--green {
-    background: #ecfdf5;
-    color: #047857;
-  }
-}
-
-/* ── Actions ── */
-.actions-bar {
-  margin-top: 4rem;
-  display: flex;
-  gap: 1rem;
+// ── Bouton de soumission ───────────────────────────────────────────────────
+.btn-submit {
+  display: inline-flex;
   align-items: center;
-  border-top: 1px solid $border;
-  padding-top: 2rem;
+  gap: 0.5rem;
+  background: $primary;
+  color: #fff;
+  border: none;
+  padding: 0.875rem 2rem;
+  border-radius: 99px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+
+  &:hover:not(:disabled) { background: $primary-hover; transform: translateY(-1px); }
+  &:disabled { opacity: 0.65; cursor: not-allowed; }
 }
 
-.btn-lg {
-  padding: 0.875rem 2rem;
-  font-size: 1rem;
-  border-radius: 12px;
+// ── Spinner ────────────────────────────────────────────────────────────────
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

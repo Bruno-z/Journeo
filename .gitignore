@@ -24,3 +24,14 @@ tmpclaude-*-cwd
 
 # Windows reserved files
 nul
+
+# Playwright / tests
+frontend/playwright-report/
+frontend/test-results/
+
+# Screenshots temporaires
+temporary screenshots/
+
+# Dépendances racine (si installées par erreur à la racine)
+/node_modules/
+/package-lock.json

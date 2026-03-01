@@ -119,11 +119,11 @@ export class GuideListComponent implements OnInit, AfterViewInit, OnDestroy {
   });
 
   visibleGuides = computed(() =>
-    this.filtered().slice(this.carouselStart(), this.carouselStart() + 4),
+    this.filtered().slice(this.carouselStart(), this.carouselStart() + 3),
   );
 
   canPrev = computed(() => this.carouselStart() > 0);
-  canNext = computed(() => this.carouselStart() + 4 < this.filtered().length);
+  canNext = computed(() => this.carouselStart() + 3 < this.filtered().length);
 
   // Leaflet
   private map?: any;
@@ -278,24 +278,24 @@ export class GuideListComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   prevCarousel(): void {
-    this.carouselStart.update(n => Math.max(0, n - 4));
+    this.carouselStart.update(n => Math.max(0, n - 3));
   }
 
   nextCarousel(): void {
-    const max = Math.max(0, this.filtered().length - 4);
-    this.carouselStart.update(n => Math.min(n + 4, max));
+    const max = Math.max(0, this.filtered().length - 3);
+    this.carouselStart.update(n => Math.min(n + 3, max));
   }
 
   carouselPages(): number[] {
-    return Array.from({ length: Math.ceil(this.filtered().length / 4) }, (_, i) => i);
+    return Array.from({ length: Math.ceil(this.filtered().length / 3) }, (_, i) => i);
   }
 
   currentPage(): number {
-    return Math.floor(this.carouselStart() / 4);
+    return Math.floor(this.carouselStart() / 3);
   }
 
   goToPage(page: number): void {
-    this.carouselStart.set(page * 4);
+    this.carouselStart.set(page * 3);
   }
 
   loadComments(guideId: number): void {
