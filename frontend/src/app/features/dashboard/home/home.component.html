@@ -169,13 +169,13 @@
             <div class="travel-card__overlay"></div>
             <div class="travel-card__content">
               <div class="travel-card__chips">
-                <span class="travel-chip">{{ saisonLabels[guide.saison] ?? guide.saison }}</span>
-                <span class="travel-chip">{{ mobiliteLabels[guide.mobilite] ?? guide.mobilite }}</span>
+                <span class="travel-chip">{{ saisonLabels[guide.saison] }}</span>
+                <span class="travel-chip">{{ mobiliteLabels[guide.mobilite] }}</span>
               </div>
               <h3 class="travel-card__title">{{ guide.titre }}</h3>
               <p class="travel-card__meta">
                 {{ guide.jours }} jour{{ guide.jours > 1 ? 's' : '' }}
-                @if (guide.activities?.length) {
+                @if (guide.activities.length) {
                   · {{ guide.activities.length }} activité{{ guide.activities.length > 1 ? 's' : '' }}
                 }
               </p>
