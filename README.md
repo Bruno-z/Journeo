@@ -15,7 +15,8 @@ Les utilisateurs peuvent consulter les guides auxquels ils ont été invités. L
 | Base de données | PostgreSQL 15 (prod/Docker), H2 (tests) |
 | Migrations   | Flyway 10                                |
 | Conteneurs   | Docker + Docker Compose                  |
-| Tests        | JUnit 5 / Mockito (205 tests), Jasmine/Karma |
+| Tests backend | JUnit 5 / Mockito — 205 tests              |
+| Tests frontend | Vitest 4 + Angular Testing Library        |
 
 ---
 
@@ -84,14 +85,34 @@ docker compose up --build
 
 ## Lancer les tests
 
+### Backend — 205 tests (JUnit 5 / Mockito)
+
 ```bash
-# Backend (depuis la racine)
 cd backend
 ./mvnw test
+```
 
-# Frontend
+Couvre : controllers, services, repositories, sécurité JWT, accès CORS, gestion des guides et activités.
+
+> Les tests backend utilisent H2 en mémoire — Docker n'est pas nécessaire pour les lancer.
+
+### Frontend — Vitest (Angular 21)
+
+```bash
 cd frontend
 ng test
+```
+
+### Frontend E2E — Playwright (optionnel, nécessite les deux serveurs actifs)
+
+```bash
+# Installer Playwright (une seule fois)
+cd frontend
+npm install --save-dev @playwright/test
+npx playwright install chromium
+
+# Lancer les tests E2E
+npx playwright test
 ```
 
 ---

@@ -1,192 +1,141 @@
-<div class="form-page">
+<div class="editor-layout">
+  
+  <!-- ════════ GAUCHE : FORMULAIRE ════════ -->
+  <div class="editor-main">
+    <div class="editor-header">
+      <h1 class="editor-title">{{ isEdit() ? 'Modifier le guide' : 'Créer un guide' }}</h1>
+      <p class="editor-subtitle">Partagez votre expérience et inspirez la communauté Journeo.</p>
+    </div>
 
-  <!-- Header -->
-  <div class="form-page__header">
-    <button type="button" class="form-back-btn" (click)="cancel()" aria-label="Annuler">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <path d="M19 12H5m0 0l7 7m-7-7l7-7"/>
-      </svg>
-    </button>
-    <div>
-      <h1 class="form-page__title">{{ isEdit() ? 'Modifier le guide' : 'Nouveau guide' }}</h1>
-      <p class="form-page__sub">{{ isEdit() ? 'Mettre à jour les informations du voyage' : 'Créez un nouveau guide de voyage' }}</p>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      
+      <!-- Titre -->
+      <div class="form-group">
+        <label class="form-label">Titre du voyage</label>
+        <input 
+          type="text" 
+          class="input-huge" 
+          formControlName="titre"
+          placeholder="Ex: Week-end à Rome..." 
+          autofocus
+        >
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label class="form-label">L'expérience en quelques mots</label>
+        <textarea 
+          class="input-area" 
+          rows="3" 
+          formControlName="description"
+          placeholder="Qu'est-ce qui rend ce voyage unique ? Décrivez l'ambiance..."
+        ></textarea>
+      </div>
+
+      <!-- Saison (Tuiles) -->
+      <div class="form-group">
+        <label class="form-label">Saison idéale</label>
+        <div class="tiles-grid">
+          @for (key of saisons; track key) {
+            <div 
+              class="tile" 
+              [class.selected]="form.value.saison === key" 
+              (click)="setVal('saison', key)"
+            >
+              <div class="tile__icon">
+                @if(key === 'ETE'){ ☀️ } @else if(key === 'HIVER'){ ❄️ } @else if(key === 'PRINTEMPS'){ 🌸 } @else { 🍂 }
+              </div>
+              <div class="tile__label">{{ saisonLabels[key] }}</div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Grid 2 colonnes pour Mobilité & Cible -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        
+        <div class="form-group">
+          <label class="form-label">Mobilité</label>
+          <div class="tiles-grid" style="grid-template-columns: 1fr 1fr;">
+            @for (key of mobilites; track key) {
+              <div class="tile" [class.selected]="form.value.mobilite === key" (click)="setVal('mobilite', key)">
+                <div class="tile__icon">
+                  @if(key === 'A_PIED'){ 🚶 } @else if(key === 'VELO'){ 🚲 } @else if(key === 'VOITURE'){ 🚗 } @else { 🚌 }
+                </div>
+                <div class="tile__label">{{ mobiliteLabels[key] }}</div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Pour qui ?</label>
+          <div class="tiles-grid" style="grid-template-columns: 1fr 1fr;">
+            @for (key of cibles; track key) {
+              <div class="tile" [class.selected]="form.value.pourQui === key" (click)="setVal('pourQui', key)">
+                <div class="tile__icon">
+                  @if(key === 'FAMILLE'){ 👨‍👩‍👧‍👦 } @else if(key === 'COUPLE'){ 💑 } @else if(key === 'ENTRE_AMIS'){ 👯 } @else { 🎒 }
+                </div>
+                <div class="tile__label">{{ publicCibleLabels[key] }}</div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Durée -->
+      <div class="form-group">
+        <label class="form-label">Durée (jours)</label>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <input type="range" formControlName="jours" min="1" max="15" style="flex: 1; accent-color: #E85A1E;">
+          <span style="font-size: 1.5rem; font-weight: 800; color: #E85A1E; min-width: 3ch;">{{ form.value.jours }}j</span>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions-bar">
+        <button type="submit" class="btn btn--primary btn-lg" [disabled]="form.invalid || saving() || loading()">
+          @if(saving()){ <span class="spinner"></span> } 
+          {{ isEdit() ? 'Enregistrer' : 'Créer le guide' }}
+        </button>
+        <button type="button" (click)="cancel()" class="btn btn--ghost btn-lg">Annuler</button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- ════════ DROITE : PREVIEW ════════ -->
+  <div class="editor-sidebar">
+    <div class="preview-badge">Aperçu en direct</div>
+    
+    <!-- La Carte -->
+    <div class="guide-card">
+      <div class="guide-card__img-wrap">
+        <img [src]="coverPreview()" class="guide-card__img" alt="Cover">
+        <div class="guide-card__overlay"></div>
+        @if (form.value.saison) {
+          <span class="guide-card__season">{{ saisonLabels[form.value.saison!] }}</span>
+        }
+      </div>
+      <div class="guide-card__body">
+        <h3 class="guide-card__title">{{ form.value.titre || 'Titre du guide...' }}</h3>
+        <div class="guide-card__chips">
+          @if (form.value.mobilite) {
+            <span class="chip chip--blue">{{ mobiliteLabels[form.value.mobilite!] }}</span>
+          }
+          @if (form.value.pourQui) {
+            <span class="chip chip--green">{{ publicCibleLabels[form.value.pourQui!] }}</span>
+          }
+          @if (form.value.jours) {
+            <span class="chip chip--orange">{{ form.value.jours }}j</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 2rem; text-align: center; color: #9ca3af; font-size: 0.9rem;">
+      <p>Cette carte sera visible par les autres utilisateurs sur la page d'accueil.</p>
     </div>
   </div>
 
-  @if (error()) {
-    <div class="alert alert--error" role="alert">{{ error() }}</div>
-  }
-
-  @if (loading()) {
-    <div class="loading-container">
-      <span class="spinner spinner--dark" aria-label="Chargement"></span>
-      Chargement…
-    </div>
-  } @else {
-    <div class="form-layout">
-
-      <!-- LEFT: Form -->
-      <div class="form-panel">
-
-        <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="guide-form">
-
-          <!-- Titre -->
-          <div class="form-section">
-            <h2 class="form-section__title">
-              <span class="form-section__num">1</span>
-              Informations générales
-            </h2>
-
-            <div class="form-group">
-              <label for="titre" class="form-label">
-                Titre du voyage <span class="form-required" aria-hidden="true">*</span>
-              </label>
-              <input
-                id="titre"
-                type="text"
-                formControlName="titre"
-                class="form-input"
-                [class.form-input--error]="form.get('titre')?.invalid && form.get('titre')?.touched"
-                placeholder="Ex : Tour de Bretagne, Semaine à Rome…"
-                autocomplete="off"
-              />
-              @if (form.get('titre')?.invalid && form.get('titre')?.touched) {
-                <span class="form-error" role="alert">Titre requis (min. 2 caractères)</span>
-              }
-            </div>
-
-            <div class="form-group">
-              <label for="description" class="form-label">Description</label>
-              <textarea
-                id="description"
-                formControlName="description"
-                class="form-input form-textarea"
-                rows="3"
-                placeholder="Décrivez l'ambiance, les temps forts, les conseils pratiques…"
-              ></textarea>
-            </div>
-          </div>
-
-          <!-- Durée & Paramètres -->
-          <div class="form-section">
-            <h2 class="form-section__title">
-              <span class="form-section__num">2</span>
-              Paramètres du voyage
-            </h2>
-
-            <div class="form-grid-3">
-              <div class="form-group">
-                <label for="jours" class="form-label">
-                  Durée <span class="form-required" aria-hidden="true">*</span>
-                </label>
-                <div class="form-input-with-unit">
-                  <input
-                    id="jours"
-                    type="number"
-                    formControlName="jours"
-                    class="form-input"
-                    [class.form-input--error]="form.get('jours')?.invalid && form.get('jours')?.touched"
-                    min="1"
-                  />
-                  <span class="form-unit">jours</span>
-                </div>
-                @if (form.get('jours')?.invalid && form.get('jours')?.touched) {
-                  <span class="form-error" role="alert">Minimum 1 jour</span>
-                }
-              </div>
-
-              <div class="form-group">
-                <label for="saison" class="form-label">Saison <span class="form-required" aria-hidden="true">*</span></label>
-                <select id="saison" formControlName="saison" class="form-input form-select">
-                  <option value="ETE">☀️ Été</option>
-                  <option value="PRINTEMPS">🌸 Printemps</option>
-                  <option value="AUTOMNE">🍂 Automne</option>
-                  <option value="HIVER">❄️ Hiver</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label for="mobilite" class="form-label">Mobilité <span class="form-required" aria-hidden="true">*</span></label>
-                <select id="mobilite" formControlName="mobilite" class="form-input form-select">
-                  <option value="A_PIED">🚶 À pied</option>
-                  <option value="VOITURE">🚗 Voiture</option>
-                  <option value="VELO">🚴 Vélo</option>
-                  <option value="MOTO">🏍️ Moto</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="pourQui" class="form-label">Public cible <span class="form-required" aria-hidden="true">*</span></label>
-              <div class="form-radio-group" role="radiogroup">
-                <label class="form-radio-card" [class.form-radio-card--active]="form.get('pourQui')?.value === 'FAMILLE'">
-                  <input type="radio" formControlName="pourQui" value="FAMILLE" class="sr-only" />
-                  <span class="form-radio-card__icon">👨‍👩‍👧‍👦</span>
-                  <span class="form-radio-card__label">Famille</span>
-                </label>
-                <label class="form-radio-card" [class.form-radio-card--active]="form.get('pourQui')?.value === 'SEUL'">
-                  <input type="radio" formControlName="pourQui" value="SEUL" class="sr-only" />
-                  <span class="form-radio-card__icon">🧍</span>
-                  <span class="form-radio-card__label">Solo</span>
-                </label>
-                <label class="form-radio-card" [class.form-radio-card--active]="form.get('pourQui')?.value === 'ENTRE_AMIS'">
-                  <input type="radio" formControlName="pourQui" value="ENTRE_AMIS" class="sr-only" />
-                  <span class="form-radio-card__icon">👫</span>
-                  <span class="form-radio-card__label">Entre amis</span>
-                </label>
-                <label class="form-radio-card" [class.form-radio-card--active]="form.get('pourQui')?.value === 'EN_GROUPE'">
-                  <input type="radio" formControlName="pourQui" value="EN_GROUPE" class="sr-only" />
-                  <span class="form-radio-card__icon">👥</span>
-                  <span class="form-radio-card__label">Groupe</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Actions -->
-          <div class="form-actions">
-            <button type="button" class="btn btn--ghost" (click)="cancel()">Annuler</button>
-            <button type="submit" class="btn btn--primary form-submit" [disabled]="saving()">
-              @if (saving()) { <span class="spinner" aria-hidden="true"></span> }
-              {{ isEdit() ? 'Enregistrer les modifications' : 'Créer le guide' }}
-            </button>
-          </div>
-
-        </form>
-      </div>
-
-      <!-- RIGHT: Live preview -->
-      <div class="preview-panel">
-        <p class="preview-panel__label">Aperçu de la carte</p>
-        <div class="preview-card" [style.background-image]="'url(' + coverPreview() + ')'">
-          @if (coverLoading()) {
-            <div class="preview-card__loader" aria-label="Chargement de la photo">
-              <span class="preview-spinner"></span>
-            </div>
-          }
-          <div class="preview-card__overlay"></div>
-          <div class="preview-card__content">
-            <div class="preview-card__chips">
-              <span class="preview-chip">{{ form.get('saison')?.value }}</span>
-              <span class="preview-chip">{{ form.get('mobilite')?.value }}</span>
-            </div>
-            <h3 class="preview-card__title">
-              {{ form.get('titre')?.value || 'Titre du voyage' }}
-            </h3>
-            <p class="preview-card__meta">
-              {{ form.get('jours')?.value || 1 }} jour{{ (form.get('jours')?.value ?? 1) > 1 ? 's' : '' }}
-            </p>
-            <span class="preview-card__cta">Voir le guide →</span>
-          </div>
-        </div>
-        <p class="preview-panel__hint">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          La photo est trouvée automatiquement pour toute ville du monde.
-        </p>
-      </div>
-
-    </div>
-  }
 </div>

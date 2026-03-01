@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { from } from 'rxjs';
@@ -9,7 +10,7 @@ import { getCoverImage, fetchWikipediaCover } from '../../../core/utils/cover-im
 
 @Component({
   selector: 'app-guide-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './guide-form.component.html',
   styleUrl: './guide-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,9 +37,9 @@ export class GuideFormComponent implements OnInit {
   readonly saisonLabels      = SAISON_LABELS;
   readonly mobiliteLabels    = MOBILITE_LABELS;
   readonly publicCibleLabels = PUBLIC_CIBLE_LABELS;
-  readonly saisons   = Object.keys(SAISON_LABELS);
-  readonly mobilites = Object.keys(MOBILITE_LABELS);
-  readonly cibles    = Object.keys(PUBLIC_CIBLE_LABELS);
+  readonly saisons   = Object.keys(SAISON_LABELS) as Array<keyof typeof SAISON_LABELS>;
+  readonly mobilites = Object.keys(MOBILITE_LABELS) as Array<keyof typeof MOBILITE_LABELS>;
+  readonly cibles    = Object.keys(PUBLIC_CIBLE_LABELS) as Array<keyof typeof PUBLIC_CIBLE_LABELS>;
 
   form = this.fb.group({
     titre:       ['', [Validators.required, Validators.minLength(2)]],
