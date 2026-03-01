@@ -1,6 +1,6 @@
 /**
  * Returns an Unsplash cover image URL for a guide based on keywords in its title.
- * Falls back to a seasonal travel photo if no destination is detected.
+ * Falls back to a Wikipedia thumbnail for any other city, then a seasonal photo.
  */
 
 const DESTINATION_MAP: [string[], string][] = [
@@ -44,6 +44,81 @@ export function getCoverImage(titre: string, saison = 'ETE'): string {
     }
   }
 
+  const fallbackId = SAISON_FALLBACK[saison] ?? DEFAULT;
+  return `https://images.unsplash.com/${fallbackId}?w=800&h=500&fit=crop&q=80`;
+}
+
+// ── Words to strip before extracting destination ──────────────────────────────
+
+const TRAVEL_WORDS = new Set([
+  'voyage', 'guide', 'trip', 'road', 'circuit', 'séjour', 'sejour',
+  'découverte', 'decouverte', 'tour', 'week', 'end', 'weekend', 'vacances',
+  'escapade', 'aventure', 'itinéraire', 'itineraire', 'highlights', 'exploring',
+  'visite', 'autour', 'balade', 'randonnée', 'randonnee', 'getaway', 'journey',
+]);
+
+const PREPOSITIONS = new Set([
+  'à', 'a', 'en', 'au', 'aux', 'de', 'du', 'des', 'dans', 'sur',
+  'par', 'pour', 'et', 'and', 'or', 'ou', 'my', 'mes', 'notre', 'nos',
+  'the', 'in', 'at', 'of', 'with', 'through', 'via',
+]);
+
+function extractDestination(titre: string): string {
+  const s = titre
+    // Remove "5 jours", "3 semaines", "2 weeks" …
+    .replace(/\d+\s*(jours?|semaines?|mois|nuits?|heures?|days?|weeks?|months?)/gi, ' ')
+    .replace(/\b\d+\b/g, ' ')
+    // Treat dashes as word separators
+    .replace(/\s*[-–—]\s*/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const words = s
+    .split(' ')
+    .filter(w => {
+      const l = w.toLowerCase();
+      return w.length > 1 && !TRAVEL_WORDS.has(l) && !PREPOSITIONS.has(l);
+    });
+
+  return words.join(' ');
+}
+
+/**
+ * Async version used by the guide form for live preview.
+ * 1. Checks the static DESTINATION_MAP instantly (no network).
+ * 2. Extracts the destination from the title and queries Wikipedia (fr → en).
+ * 3. Falls back to a seasonal Unsplash photo.
+ */
+export async function fetchWikipediaCover(titre: string, saison = 'ETE'): Promise<string> {
+  const lower = titre.toLowerCase();
+
+  // ── 1. Static cache (instant) ──────────────────────────────────────────────
+  for (const [keywords, photoId] of DESTINATION_MAP) {
+    if (keywords.some(k => lower.includes(k))) {
+      return `https://images.unsplash.com/${photoId}?w=800&h=500&fit=crop&q=80`;
+    }
+  }
+
+  // ── 2. Wikipedia thumbnail ─────────────────────────────────────────────────
+  const destination = extractDestination(titre).trim();
+  if (destination.length >= 2) {
+    for (const lang of ['fr', 'en']) {
+      try {
+        const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(destination)}`;
+        const resp = await fetch(url, { signal: AbortSignal.timeout(5000) });
+        if (resp.ok) {
+          const data = await resp.json();
+          // Avoid disambiguation pages (no useful image) and pages with no thumbnail
+          if (data.thumbnail?.source && data.type !== 'disambiguation') {
+            // Upscale from Wikipedia's default thumbnail size to 800px
+            return data.thumbnail.source.replace(/\/\d+px-/, '/800px-');
+          }
+        }
+      } catch { /* try next language */ }
+    }
+  }
+
+  // ── 3. Seasonal fallback ───────────────────────────────────────────────────
   const fallbackId = SAISON_FALLBACK[saison] ?? DEFAULT;
   return `https://images.unsplash.com/${fallbackId}?w=800&h=500&fit=crop&q=80`;
 }
