@@ -218,7 +218,7 @@ export class GuideListComponent implements OnInit, AfterViewInit, OnDestroy {
         const popup = `<strong style="font-family:Inter,sans-serif;font-size:13px">${a.titre}</strong>` +
           (a.adresse ? `<br/><span style="font-size:11px;color:#6b7280">${a.adresse}</span>` : '');
         const m = L.circleMarker(ll, {
-          radius: 9, fillColor: '#e8501e', color: '#ffffff', weight: 2.5, fillOpacity: 0.92,
+          radius: 9, fillColor: '#E85A1E', color: '#ffffff', weight: 2.5, fillOpacity: 0.92,
         }).addTo(this.map).bindPopup(popup);
         this.activityMarkers.push(m);
       }
@@ -247,7 +247,7 @@ export class GuideListComponent implements OnInit, AfterViewInit, OnDestroy {
           const popup = `<strong style="font-family:Inter,sans-serif;font-size:13px">${guide.titre}</strong>` +
             `<br/><span style="font-size:11px;color:#6b7280">${addr}</span>`;
           const m = L.circleMarker(ll, {
-            radius: 10, fillColor: '#e8501e', color: '#ffffff', weight: 3, fillOpacity: 0.92,
+            radius: 10, fillColor: '#E85A1E', color: '#ffffff', weight: 3, fillOpacity: 0.92,
           }).addTo(this.map).bindPopup(popup).openPopup();
           this.activityMarkers.push(m);
           return;
@@ -260,7 +260,7 @@ export class GuideListComponent implements OnInit, AfterViewInit, OnDestroy {
     const coords: [number, number] = CITY_COORDS[city] ?? CITY_COORDS['default'];
     this.map.flyTo(coords, city === 'default' ? 2 : 10, { animate: true, duration: 1.2 });
     const m = L.circleMarker(coords, {
-      radius: 10, fillColor: '#e8501e', color: '#ffffff', weight: 3, fillOpacity: 0.92,
+      radius: 10, fillColor: '#E85A1E', color: '#ffffff', weight: 3, fillOpacity: 0.92,
     }).addTo(this.map)
       .bindPopup(`<strong style="font-family:Inter,sans-serif;font-size:13px">${guide.titre}</strong>`)
       .openPopup();
@@ -354,6 +354,51 @@ export class GuideListComponent implements OnInit, AfterViewInit, OnDestroy {
 
   starsArray(): number[] {
     return [1, 2, 3, 4, 5];
+  }
+
+  getActivityIcon(type: string): string {
+    switch (type) {
+      case 'MUSEE': return '🏛️';
+      case 'CHATEAU': return '🏰';
+      case 'PARC': return '🌳';
+      case 'GROTTE': return '🪨';
+      default: return '📍';
+    }
+  }
+
+  canDeleteComment(c: Comment): boolean {
+    return this.auth.isAdmin() || c.authorEmail === this.auth.email();
+  }
+
+  timeAgo(dateStr: string): string {
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (diff < 60) return 'il y a quelques secondes';
+    if (diff < 3600) { const m = Math.floor(diff / 60); return `il y a ${m} minute${m > 1 ? 's' : ''}`; }
+    if (diff < 86400) { const h = Math.floor(diff / 3600); return `il y a ${h} heure${h > 1 ? 's' : ''}`; }
+    if (diff < 604800) { const d = Math.floor(diff / 86400); return `il y a ${d} jour${d > 1 ? 's' : ''}`; }
+    const w = Math.floor(diff / 604800);
+    return `il y a ${w} semaine${w > 1 ? 's' : ''}`;
+  }
+
+  authorName(c: Comment): string {
+    if (c.authorFirstName && c.authorLastName) return `${c.authorFirstName} ${c.authorLastName}`;
+    if (c.authorFirstName) return c.authorFirstName;
+    return c.authorEmail.split('@')[0];
+  }
+
+  avatarColor(email: string): string {
+    const palette = ['#E85A1E', '#4F46E5', '#059669', '#DC2626', '#7C3AED', '#0891B2', '#D97706'];
+    let h = 0;
+    for (let i = 0; i < email.length; i++) h = (h * 31 + email.charCodeAt(i)) & 0xffffffff;
+    return palette[Math.abs(h) % palette.length];
+  }
+
+  likeCount(c: Comment): number {
+    return (c.id % 28) + c.rating * 3;
+  }
+
+  dislikeCount(c: Comment): number {
+    return c.id % 4;
   }
 
   delete(guide: Guide): void {

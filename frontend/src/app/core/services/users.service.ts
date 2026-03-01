@@ -3,8 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { User, UserRequest } from '../models/user.model';
 import { Guide } from '../models/guide.model';
+import { environment } from '../../../environments/environment';
 
-const API = 'http://localhost:8080/api';
+const API = environment.apiUrl;
 
 @Injectable({ providedIn: 'root' })
 export class UsersService {

@@ -56,7 +56,7 @@
             <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
             <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
           </svg>
-          {{ guide()!.activities?.length ?? 0 }} activité{{ (guide()!.activities?.length ?? 0) !== 1 ? 's' : '' }}
+          {{ guide()!.activities.length }} activité{{ guide()!.activities.length !== 1 ? 's' : '' }}
         </span>
       </div>
       @if (guide()!.description) {
@@ -124,7 +124,7 @@
         <div class="tab-panel__header">
           <h2 id="tab-programme" class="tab-panel__title">
             Programme
-            <span class="badge badge--neutral">{{ guide()!.activities?.length ?? 0 }}</span>
+            <span class="badge badge--neutral">{{ guide()!.activities.length }}</span>
           </h2>
           @if (auth.isAdmin()) {
             <button class="btn btn--primary btn--sm" (click)="showActivityForm.set(!showActivityForm())">
@@ -196,7 +196,7 @@
           </div>
         }
 
-        @if (!guide()!.activities?.length) {
+        @if (!guide()!.activities.length) {
           <div class="empty-state">
             <div class="empty-state__icon">📋</div>
             <p class="empty-state__title">Aucune activité programmée</p>
@@ -365,59 +365,84 @@
     <!-- ─── COMMENTAIRES ─── -->
     @if (activeTab() === 'commentaires') {
       <section class="tab-panel" aria-labelledby="tab-commentaires">
-        <div class="tab-panel__header">
-          <h2 id="tab-commentaires" class="tab-panel__title">
-            Commentaires
-            @if (comments().length > 0) {
-              <span class="badge badge--neutral">{{ comments().length }}</span>
+
+        <!-- Compose card -->
+        <div class="compose-card">
+          @if (commentSuccess()) {
+            <div class="alert alert--success" role="status" style="margin:0.75rem 1.25rem 0">Commentaire publié !</div>
+          }
+          @if (commentError()) {
+            <div class="alert alert--error" role="alert" style="margin:0.75rem 1.25rem 0">{{ commentError() }}</div>
+          }
+
+          <div class="compose-card__rating-row" role="group" aria-label="Note sur 5">
+            <span class="compose-card__rating-label">Votre note</span>
+            @for (star of starsArray; track star) {
+              <button
+                type="button"
+                class="cstar"
+                [class.cstar--active]="star <= selectedRating()"
+                (click)="setRating(star)"
+                [attr.aria-label]="star + ' étoile' + (star > 1 ? 's' : '')"
+              >★</button>
             }
-          </h2>
-        </div>
+            <span class="compose-card__rating-val">{{ selectedRating() }}/5</span>
+          </div>
 
-        <!-- Comment form -->
-        <div class="comment-form-card card">
-          <div class="card__body">
-            <p class="comment-form-card__label">Votre avis</p>
+          <form [formGroup]="commentForm" (ngSubmit)="submitComment()">
+            <textarea
+              class="compose-card__textarea"
+              formControlName="content"
+              rows="4"
+              placeholder="Ajouter un commentaire..."
+            ></textarea>
 
-            <!-- Star rating -->
-            <div class="star-rating" role="group" aria-label="Note sur 5">
-              @for (star of starsArray; track star) {
-                <button
-                  type="button"
-                  class="star-rating__btn"
-                  [class.star-rating__btn--active]="star <= selectedRating()"
-                  (click)="setRating(star)"
-                  [attr.aria-label]="star + ' étoile' + (star > 1 ? 's' : '')"
-                >★</button>
-              }
-              <span class="star-rating__label">{{ selectedRating() }}/5</span>
-            </div>
-
-            @if (commentSuccess()) {
-              <div class="alert alert--success" role="status">Commentaire publié !</div>
-            }
-            @if (commentError()) {
-              <div class="alert alert--error" role="alert">{{ commentError() }}</div>
-            }
-
-            <form [formGroup]="commentForm" (ngSubmit)="submitComment()" class="comment-form">
-              <textarea
-                class="form-textarea"
-                formControlName="content"
-                rows="3"
-                placeholder="Partagez votre expérience…"
-              ></textarea>
-              <div class="comment-form__actions">
-                <button type="submit" class="btn btn--primary" [disabled]="commentSaving()">
-                  @if (commentSaving()) { <span class="spinner" aria-hidden="true"></span> }
-                  Publier
+            <div class="compose-card__toolbar">
+              <div class="compose-card__tools" aria-hidden="true">
+                <button type="button" class="tool-btn tool-btn--bold" tabindex="-1">B</button>
+                <button type="button" class="tool-btn tool-btn--italic" tabindex="-1">I</button>
+                <button type="button" class="tool-btn tool-btn--underline" tabindex="-1">U</button>
+                <span class="tool-sep"></span>
+                <!-- Paperclip -->
+                <button type="button" class="tool-btn" tabindex="-1">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                </button>
+                <!-- Image -->
+                <button type="button" class="tool-btn" tabindex="-1">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                </button>
+                <!-- Emoji -->
+                <button type="button" class="tool-btn" tabindex="-1">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                </button>
+                <!-- @ mention -->
+                <button type="button" class="tool-btn" tabindex="-1">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 006 0v-1a10 10 0 10-3.92 7.94"/></svg>
                 </button>
               </div>
-            </form>
-          </div>
+
+              <button type="submit" class="compose-card__submit" [disabled]="commentSaving()">
+                @if (commentSaving()) { <span class="spinner spinner--sm" aria-hidden="true"></span> }
+                Publier
+              </button>
+            </div>
+          </form>
         </div>
 
-        <!-- Comments list -->
+        <!-- Comments header -->
+        <div class="comments-header">
+          <div class="comments-header__info">
+            <h2 id="tab-commentaires" class="comments-header__title">Commentaires</h2>
+            @if (comments().length > 0) {
+              <span class="comments-header__badge">{{ comments().length }}</span>
+            }
+          </div>
+          <button class="comments-sort" type="button" aria-label="Trier les commentaires">
+            Le plus récent <span class="comments-sort__arrows">↕</span>
+          </button>
+        </div>
+
+        <!-- Loading skeleton -->
         @if (commentsLoading()) {
           <div class="comments-list">
             @for (i of [1,2,3]; track i) {
@@ -439,21 +464,16 @@
           <div class="comments-list">
             @for (comment of comments(); track comment.id) {
               <article class="comment-item">
-                <div class="comment-item__avatar" aria-hidden="true">
-                  {{ comment.authorEmail[0].toUpperCase() }}
+                <div class="comment-item__avatar" [style.background]="avatarColor(comment.authorEmail)" aria-hidden="true">
+                  {{ (comment.authorFirstName || comment.authorEmail)[0].toUpperCase() }}
                 </div>
                 <div class="comment-item__body">
-                  <div class="comment-item__header">
-                    <span class="comment-item__author">{{ comment.authorEmail }}</span>
-                    <div class="comment-item__stars" aria-label="{{ comment.rating }} étoiles sur 5">
-                      @for (star of starsArray; track star) {
-                        <span [class.star--active]="star <= comment.rating" class="star">★</span>
-                      }
-                    </div>
-                    <span class="comment-item__date">{{ comment.createdAt | date:'d MMM yyyy' }}</span>
+                  <div class="comment-item__top">
+                    <span class="comment-item__name">{{ authorName(comment) }}</span>
+                    <span class="comment-item__time">{{ timeAgo(comment.createdAt) }}</span>
                     @if (canDeleteComment(comment)) {
                       <button
-                        class="comment-item__delete btn btn--ghost btn--sm"
+                        class="comment-item__delete"
                         (click)="deleteComment(comment.id)"
                         [disabled]="deletingComment() === comment.id"
                         aria-label="Supprimer le commentaire"
@@ -465,6 +485,20 @@
                     }
                   </div>
                   <p class="comment-item__content">{{ comment.content }}</p>
+                  <div class="comment-item__actions">
+                    <button class="caction" type="button" aria-label="J'aime">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+                      <span>{{ likeCount(comment) }}</span>
+                    </button>
+                    <button class="caction" type="button" aria-label="Je n'aime pas">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg>
+                      <span>{{ dislikeCount(comment) }}</span>
+                    </button>
+                    <button class="caction caction--reply" type="button">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                      Répondre
+                    </button>
+                  </div>
                 </div>
               </article>
             }
