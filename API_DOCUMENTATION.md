@@ -1,4 +1,4 @@
-# Journeo — API Documentation
+# Journeo — API Documentation V1
 
 > **Base URL:** `http://localhost:8080`
 > **Interactive Swagger UI:** [`http://localhost:8080/swagger-ui.html`](http://localhost:8080/swagger-ui.html)
