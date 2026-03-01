@@ -1,0 +1,279 @@
+<div class="users-page">
+
+  <!-- ── Page header ── -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-header__title">Utilisateurs</h1>
+      @if (!loading()) {
+        <p class="page-header__sub">
+          {{ users().length }} membre{{ users().length !== 1 ? 's' : '' }} ·
+          {{ adminCount() }} admin{{ adminCount() !== 1 ? 's' : '' }}
+        </p>
+      }
+    </div>
+    <a routerLink="/auth/register" class="btn btn--primary btn--sm">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nouvel utilisateur
+    </a>
+  </div>
+
+  <!-- ── Stat chips ── -->
+  @if (!loading()) {
+    <div class="users-stats">
+      <div class="stat-chip">
+        <div class="stat-chip__icon stat-chip__icon--total">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"/>
+          </svg>
+        </div>
+        <div>
+          <span class="stat-chip__value">{{ users().length }}</span>
+          <span class="stat-chip__label">Utilisateurs</span>
+        </div>
+      </div>
+
+      <div class="stat-chip">
+        <div class="stat-chip__icon stat-chip__icon--admin">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div>
+          <span class="stat-chip__value">{{ adminCount() }}</span>
+          <span class="stat-chip__label">Admins</span>
+        </div>
+      </div>
+
+      <div class="stat-chip">
+        <div class="stat-chip__icon stat-chip__icon--user">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </div>
+        <div>
+          <span class="stat-chip__value">{{ users().length - adminCount() }}</span>
+          <span class="stat-chip__label">Membres</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Error ── -->
+  @if (error()) {
+    <div class="alert alert--error" role="alert">{{ error() }}</div>
+  }
+
+  <!-- ── Two-column body ── -->
+  <div class="users-layout">
+
+    <!-- LEFT: table -->
+    <div class="users-main">
+
+      @if (loading()) {
+        <div class="user-table">
+          <div class="user-table__head">
+            <span></span><span>Nom</span><span>Email</span><span>Rôle</span><span>Statut</span><span></span>
+          </div>
+          @for (i of [1,2,3,4,5]; track i) {
+            <div class="user-table__row user-table__row--skeleton" aria-hidden="true"></div>
+          }
+        </div>
+
+      } @else if (users().length === 0) {
+        <div class="empty-state">
+          <div class="empty-state__icon" aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+            </svg>
+          </div>
+          <p class="empty-state__title">Aucun utilisateur</p>
+          <p class="empty-state__desc">Commencez par créer votre premier compte.</p>
+          <a routerLink="/auth/register" class="btn btn--primary btn--sm">Créer un utilisateur</a>
+        </div>
+
+      } @else {
+        <div class="user-table" role="table">
+
+          <div class="user-table__head" role="row">
+            <span role="columnheader"></span>
+            <span role="columnheader">Nom</span>
+            <span role="columnheader">Email</span>
+            <span role="columnheader" class="col-role">Rôle</span>
+            <span role="columnheader" class="col-status">Statut</span>
+            <span role="columnheader" class="col-actions"></span>
+          </div>
+
+          @for (user of users(); track user.id) {
+            <div
+              class="user-table__row"
+              role="row"
+              [class.user-table__row--changing]="changingRole() === user.id"
+            >
+              <!-- Avatar -->
+              <div class="user-cell col-avatar" role="cell">
+                <div class="user-avatar" [class.user-avatar--admin]="user.role === 'ADMIN'">
+                  {{ initials(user) }}
+                </div>
+              </div>
+
+              <!-- Name -->
+              <div class="user-cell col-name" role="cell">
+                <span class="user-name">{{ fullName(user) }}</span>
+                <span class="user-id">#{{ user.id }}</span>
+              </div>
+
+              <!-- Email -->
+              <div class="user-cell col-email" role="cell">
+                <span class="user-email">{{ user.email }}</span>
+              </div>
+
+              <!-- Role -->
+              <div class="user-cell col-role" role="cell">
+                <div class="role-pill" [class.role-pill--admin]="user.role === 'ADMIN'">
+                  <span class="role-pill__dot"></span>
+                  @if (changingRole() === user.id) {
+                    <span class="spinner spinner--sm"></span>
+                  } @else {
+                    {{ user.role === 'ADMIN' ? 'Admin' : 'Membre' }}
+                  }
+                </div>
+              </div>
+
+              <!-- Status -->
+              <div class="user-cell col-status" role="cell">
+                <span class="status-badge status-badge--active">
+                  <span class="status-badge__dot"></span>
+                  Actif
+                </span>
+              </div>
+
+              <!-- Actions menu -->
+              <div class="user-cell col-actions" role="cell">
+                <div class="action-menu">
+                  <button
+                    class="action-menu__trigger"
+                    (click)="toggleMenu(user.id)"
+                    [attr.aria-expanded]="menuOpen() === user.id"
+                    [attr.aria-label]="'Actions pour ' + fullName(user)"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                    </svg>
+                  </button>
+
+                  @if (menuOpen() === user.id) {
+                    <div class="action-menu__dropdown" role="menu">
+                      @if (auth.isAdmin()) {
+                        <button
+                          class="action-menu__item"
+                          role="menuitem"
+                          (click)="toggleRole(user)"
+                          [disabled]="changingRole() === user.id"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                          </svg>
+                          {{ user.role === 'ADMIN' ? 'Rétrograder en membre' : 'Promouvoir en admin' }}
+                        </button>
+                      }
+                      <button
+                        class="action-menu__item action-menu__item--danger"
+                        role="menuitem"
+                        (click)="delete(user)"
+                        [disabled]="deleting() === user.id"
+                      >
+                        @if (deleting() === user.id) {
+                          <span class="spinner spinner--sm"></span>
+                        } @else {
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                            <path d="M10 11v6m4-6v6"/>
+                          </svg>
+                          Supprimer
+                        }
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- RIGHT: visual panel -->
+    @if (!loading() && users().length > 0) {
+      <aside class="users-sidebar">
+
+        <!-- Role distribution ring -->
+        <div class="sidebar-card">
+          <h3 class="sidebar-card__title">Répartition des rôles</h3>
+          <div class="ring-chart">
+            <div
+              class="ring-chart__circle"
+              [style.background]="'conic-gradient(var(--color-primary) 0% ' + adminPercent() + '%, #e2e8f0 ' + adminPercent() + '% 100%)'"
+            ></div>
+            <div class="ring-chart__hole">
+              <span class="ring-chart__pct">{{ adminPercent() }}%</span>
+              <span class="ring-chart__lbl">Admin</span>
+            </div>
+          </div>
+          <div class="ring-legend">
+            <div class="ring-legend__item">
+              <span class="ring-legend__dot ring-legend__dot--admin"></span>
+              <span class="ring-legend__label">Admin</span>
+              <span class="ring-legend__count">{{ adminCount() }}</span>
+            </div>
+            <div class="ring-legend__item">
+              <span class="ring-legend__dot ring-legend__dot--member"></span>
+              <span class="ring-legend__label">Membre</span>
+              <span class="ring-legend__count">{{ users().length - adminCount() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="sidebar-card">
+          <h3 class="sidebar-card__title">Actions rapides</h3>
+          <div class="quick-actions">
+            <a routerLink="/auth/register" class="quick-action-btn">
+              <span class="quick-action-btn__icon quick-action-btn__icon--add">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </span>
+              <span>Nouvel utilisateur</span>
+            </a>
+            <a routerLink="/dashboard/guides" class="quick-action-btn">
+              <span class="quick-action-btn__icon quick-action-btn__icon--guides">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                </svg>
+              </span>
+              <span>Voir les guides</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Tip card -->
+        <div class="sidebar-card sidebar-card--tip">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <p>Utilisez le menu <strong>⋮</strong> pour promouvoir un membre en admin ou le supprimer.</p>
+        </div>
+
+      </aside>
+    }
+
+  </div><!-- /.users-layout -->
+
+</div>

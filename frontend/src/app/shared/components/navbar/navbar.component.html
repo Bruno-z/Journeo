@@ -1,0 +1,53 @@
+<header class="navbar" role="banner">
+
+  <!-- Hamburger (mobile only) -->
+  <button
+    class="navbar__hamburger"
+    (click)="sidebarState.toggle()"
+    [attr.aria-expanded]="sidebarState.isOpen()"
+    aria-label="Ouvrir le menu"
+  >
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+
+  <!-- Left: logo + page title -->
+  <div class="navbar__left">
+    
+
+    @if (pageTitle()) {
+      <div class="navbar__divider" aria-hidden="true"></div>
+      <span class="navbar__page-title">{{ pageTitle() }}</span>
+    }
+  </div>
+
+  <!-- Right: admin badge + avatar + logout -->
+  <div class="navbar__right">
+    @if (auth.isAdmin()) {
+      <span class="navbar__role-badge">Admin</span>
+    }
+
+    <div class="navbar__avatar-pill">
+      <div class="navbar__avatar-circle" aria-hidden="true">
+        {{ (auth.firstName() ?? auth.email() ?? 'U')[0].toUpperCase() }}
+      </div>
+      <span class="navbar__avatar-name">{{ auth.displayName() }}</span>
+    </div>
+
+    <button
+      class="navbar__logout"
+      (click)="logout()"
+      aria-label="Se déconnecter"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+    </button>
+  </div>
+
+</header>

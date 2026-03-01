@@ -1,0 +1,148 @@
+@if (modal.isOpen()) {
+  <div
+    class="modal-backdrop"
+    (click)="modal.close()"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Authentification"
+  >
+    <div class="modal-panel" (click)="$event.stopPropagation()">
+
+      <button class="modal-close" (click)="modal.close()" aria-label="Fermer la fenêtre">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+
+      <!-- Logo -->
+      <div class="modal-brand">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="16" fill="var(--color-primary)"/>
+          <path d="M10 22 L16 10 L22 22" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="10" r="2" fill="white"/>
+        </svg>
+        <span class="modal-brand__name">Journeo</span>
+      </div>
+
+      <!-- Tabs -->
+      <div class="modal-tabs" role="tablist">
+        <button
+          role="tab"
+          class="modal-tabs__tab"
+          [class.modal-tabs__tab--active]="modal.activeTab() === 'login'"
+          (click)="modal.switchTab('login')"
+          [attr.aria-selected]="modal.activeTab() === 'login'"
+        >Se connecter</button>
+        <button
+          role="tab"
+          class="modal-tabs__tab"
+          [class.modal-tabs__tab--active]="modal.activeTab() === 'register'"
+          (click)="modal.switchTab('register')"
+          [attr.aria-selected]="modal.activeTab() === 'register'"
+        >Créer un compte</button>
+      </div>
+
+      <!-- Login form -->
+      @if (modal.activeTab() === 'login') {
+        <form [formGroup]="loginForm" (ngSubmit)="submitLogin()">
+          @if (loginError()) {
+            <div class="alert alert--error">{{ loginError() }}</div>
+          }
+          <div class="form-group">
+            <label class="form-label" for="modal-email">Email</label>
+            <input
+              id="modal-email"
+              type="email"
+              class="form-input"
+              formControlName="email"
+              placeholder="votre@email.com"
+              autocomplete="email"
+            />
+            @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+              <span class="form-error">Email invalide</span>
+            }
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="modal-password">Mot de passe</label>
+            <input
+              id="modal-password"
+              type="password"
+              class="form-input"
+              formControlName="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+            />
+            @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+              <span class="form-error">Mot de passe requis</span>
+            }
+          </div>
+          <button type="submit" class="btn btn--primary btn--full" [disabled]="loginLoading()">
+            @if (loginLoading()) {
+              <span class="spinner"></span>
+            }
+            Se connecter
+          </button>
+          <p class="modal-switch">
+            Pas encore de compte ?
+            <button type="button" class="modal-switch__link" (click)="modal.switchTab('register')">
+              Créer un compte
+            </button>
+          </p>
+        </form>
+      }
+
+      <!-- Register form -->
+      @if (modal.activeTab() === 'register') {
+        <form [formGroup]="registerForm" (ngSubmit)="submitRegister()">
+          @if (registerError()) {
+            <div class="alert alert--error">{{ registerError() }}</div>
+          }
+          @if (registerSuccess()) {
+            <div class="alert alert--success">Compte créé ! Redirection vers la connexion…</div>
+          }
+          <div class="form-group">
+            <label class="form-label" for="modal-reg-email">Email</label>
+            <input
+              id="modal-reg-email"
+              type="email"
+              class="form-input"
+              formControlName="email"
+              placeholder="votre@email.com"
+              autocomplete="email"
+            />
+            @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
+              <span class="form-error">Email invalide</span>
+            }
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="modal-reg-password">Mot de passe</label>
+            <input
+              id="modal-reg-password"
+              type="password"
+              class="form-input"
+              formControlName="password"
+              placeholder="Minimum 6 caractères"
+              autocomplete="new-password"
+            />
+            @if (registerForm.get('password')?.invalid && registerForm.get('password')?.touched) {
+              <span class="form-error">6 caractères minimum</span>
+            }
+          </div>
+          <button type="submit" class="btn btn--primary btn--full" [disabled]="registerLoading() || registerSuccess()">
+            @if (registerLoading()) {
+              <span class="spinner"></span>
+            }
+            Créer mon compte
+          </button>
+          <p class="modal-switch">
+            Déjà inscrit ?
+            <button type="button" class="modal-switch__link" (click)="modal.switchTab('login')">
+              Se connecter
+            </button>
+          </p>
+        </form>
+      }
+
+    </div>
+  </div>
+}

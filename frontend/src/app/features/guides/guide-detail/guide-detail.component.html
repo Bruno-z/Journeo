@@ -1,0 +1,528 @@
+@if (loading()) {
+  <div class="loading-container">
+    <span class="spinner spinner--dark" aria-label="Chargement du guide"></span>
+    Chargement…
+  </div>
+} @else if (error()) {
+  <div class="alert alert--error" role="alert">{{ error() }}</div>
+} @else if (guide()) {
+
+<div class="split-layout">
+  <div class="split-layout__content">
+  <!-- ═══════════════════════════════════════════════════
+       HERO
+  ═══════════════════════════════════════════════════ -->
+  <div class="detail-hero" [style.background-image]="'url(' + coverImageUrl() + ')'">
+    <div class="detail-hero__overlay"></div>
+
+    <div class="detail-hero__top">
+      <a routerLink="/dashboard/guides" class="detail-hero__back" aria-label="Retour aux guides">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M19 12H5m0 0l7 7m-7-7l7-7"/>
+        </svg>
+      </a>
+
+      @if (auth.isAdmin()) {
+        <div class="detail-hero__admin-actions">
+          <a routerLink="/dashboard/guides/{{ guide()!.id }}/edit" class="btn btn--secondary btn--sm">
+            Modifier
+          </a>
+          <button class="btn btn--danger btn--sm" (click)="delete()" [disabled]="deleting()">
+            @if (deleting()) { <span class="spinner" aria-hidden="true"></span> }
+            Supprimer
+          </button>
+        </div>
+      }
+    </div>
+
+    <div class="detail-hero__content">
+      <div class="detail-hero__chips">
+        <span class="hero-chip hero-chip--saison">{{ saisonLabels[guide()!.saison] }}</span>
+        <span class="hero-chip hero-chip--mobilite">{{ mobiliteLabels[guide()!.mobilite] }}</span>
+        <span class="hero-chip">{{ publicCibleLabels[guide()!.pourQui] }}</span>
+      </div>
+      <h1 class="detail-hero__title">{{ guide()!.titre }}</h1>
+      <div class="detail-hero__meta">
+        <span class="detail-hero__meta-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          {{ guide()!.jours }} jour{{ guide()!.jours > 1 ? 's' : '' }}
+        </span>
+        <span class="detail-hero__meta-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+          {{ guide()!.activities?.length ?? 0 }} activité{{ (guide()!.activities?.length ?? 0) !== 1 ? 's' : '' }}
+        </span>
+      </div>
+      @if (guide()!.description) {
+        <p class="detail-hero__desc">{{ guide()!.description }}</p>
+      }
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       TABS
+  ═══════════════════════════════════════════════════ -->
+  <div class="detail-tabs" role="tablist" aria-label="Sections du guide">
+    <button
+      class="detail-tabs__tab"
+      [class.detail-tabs__tab--active]="activeTab() === 'programme'"
+      (click)="setTab('programme')"
+      role="tab"
+      [attr.aria-selected]="activeTab() === 'programme'"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+      </svg>
+      Programme
+    </button>
+    <button
+      class="detail-tabs__tab"
+      [class.detail-tabs__tab--active]="activeTab() === 'galerie'"
+      (click)="setTab('galerie')"
+      role="tab"
+      [attr.aria-selected]="activeTab() === 'galerie'"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+      Galerie
+    </button>
+    <button
+      class="detail-tabs__tab"
+      [class.detail-tabs__tab--active]="activeTab() === 'commentaires'"
+      (click)="setTab('commentaires')"
+      role="tab"
+      [attr.aria-selected]="activeTab() === 'commentaires'"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+      </svg>
+      Commentaires
+      @if (comments().length > 0) {
+        <span class="detail-tabs__badge">{{ comments().length }}</span>
+      }
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       TAB CONTENT WRAPPER
+  ═══════════════════════════════════════════════════ -->
+  <div class="detail-body">
+
+    <!-- ─── PROGRAMME ─── -->
+    @if (activeTab() === 'programme') {
+      <section class="tab-panel" aria-labelledby="tab-programme">
+
+        <div class="tab-panel__header">
+          <h2 id="tab-programme" class="tab-panel__title">
+            Programme
+            <span class="badge badge--neutral">{{ guide()!.activities?.length ?? 0 }}</span>
+          </h2>
+          @if (auth.isAdmin()) {
+            <button class="btn btn--primary btn--sm" (click)="showActivityForm.set(!showActivityForm())">
+              @if (showActivityForm()) { Annuler } @else { + Ajouter }
+            </button>
+          }
+        </div>
+
+        @if (auth.isAdmin() && showActivityForm()) {
+          <div class="card activity-form-card">
+            <div class="card__header"><h3 class="card__title">Nouvelle activité</h3></div>
+            <div class="card__body">
+              @if (activityError()) {
+                <div class="alert alert--error" role="alert">{{ activityError() }}</div>
+              }
+              <form [formGroup]="activityForm" (ngSubmit)="submitActivity()" class="activity-form">
+                <div class="activity-form__row">
+                  <div class="form-group">
+                    <label class="form-label" for="act-titre">Titre *</label>
+                    <input id="act-titre" class="form-input" formControlName="titre" placeholder="Ex: Visite du Louvre" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="act-type">Type *</label>
+                    <select id="act-type" class="form-select" formControlName="type">
+                      <option value="MUSEE">Musée</option>
+                      <option value="CHATEAU">Château</option>
+                      <option value="ACTIVITE">Activité</option>
+                      <option value="PARC">Parc</option>
+                      <option value="GROTTE">Grotte</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="activity-form__row activity-form__row--three">
+                  <div class="form-group">
+                    <label class="form-label" for="act-jour">Jour *</label>
+                    <input id="act-jour" type="number" class="form-input" formControlName="jour" min="1" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="act-ordre">Ordre *</label>
+                    <input id="act-ordre" type="number" class="form-input" formControlName="ordre" min="1" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="act-duree">Durée (min) *</label>
+                    <input id="act-duree" type="number" class="form-input" formControlName="duree" min="1" />
+                  </div>
+                </div>
+                <div class="activity-form__row">
+                  <div class="form-group">
+                    <label class="form-label" for="act-heure">Heure de début</label>
+                    <input id="act-heure" type="time" class="form-input" formControlName="heureDebut" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="act-adresse">Adresse</label>
+                    <input id="act-adresse" class="form-input" formControlName="adresse" placeholder="Ex: Rue de Rivoli, Paris" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="act-desc">Description</label>
+                  <textarea id="act-desc" class="form-textarea" formControlName="description" rows="2" placeholder="Description optionnelle…"></textarea>
+                </div>
+                <div class="activity-form__actions">
+                  <button type="submit" class="btn btn--primary" [disabled]="activitySaving()">
+                    @if (activitySaving()) { <span class="spinner" aria-hidden="true"></span> }
+                    Créer l'activité
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        }
+
+        @if (!guide()!.activities?.length) {
+          <div class="empty-state">
+            <div class="empty-state__icon">📋</div>
+            <p class="empty-state__title">Aucune activité programmée</p>
+            <p class="empty-state__sub">Les activités apparaîtront ici une fois ajoutées.</p>
+          </div>
+        } @else {
+          <div class="days-list">
+            @for (day of daysArray(); track day) {
+              <div class="day-block">
+                <div class="day-block__header">
+                  <span class="day-block__dot"></span>
+                  <h3 class="day-block__title">Jour {{ day }}</h3>
+                  <span class="day-block__count">{{ activitiesByDay().get(day)!.length }} activité{{ activitiesByDay().get(day)!.length > 1 ? 's' : '' }}</span>
+                </div>
+                <div class="activities-list">
+                  @for (activity of activitiesByDay().get(day)!; track activity.id) {
+                    <div
+                      class="activity-item"
+                      [class.activity-item--selected]="selectedActivity()?.id === activity.id"
+                      (click)="focusActivity(activity)"
+                    >
+                      <div class="activity-item__icon">{{ getActivityIcon(activity.type) }}</div>
+                      <div class="activity-item__time">
+                        @if (activity.heureDebut) {
+                          <span>{{ activity.heureDebut }}</span>
+                        } @else {
+                          <span class="text-muted">&mdash;</span>
+                        }
+                      </div>
+                      <div class="activity-item__body">
+                        <div class="activity-item__header">
+                          <h4 class="activity-item__title">
+                            <strong>{{ activity.titre }}</strong>
+                          </h4>
+                          <div class="activity-item__right">
+                            <span class="badge badge--primary">{{ activityTypeLabels[activity.type] }}</span>
+                            @if (auth.isAdmin()) {
+                              <button
+                                class="btn btn--ghost btn--sm activity-item__delete"
+                                (click)="deleteActivity(activity.id)"
+                                [disabled]="deletingActivity() === activity.id" 
+                                [attr.aria-label]="'Supprimer ' + activity.titre"
+                              >
+                                @if (deletingActivity() === activity.id) {
+                                  <span class="spinner" aria-hidden="true"></span>
+                                } @else {
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                                  </svg>
+                                }
+                              </button>
+                            }
+                          </div>
+                        </div>
+                        @if (activity.description) {
+                          <p class="activity-item__desc">{{ activity.description }}</p>
+                        }
+                        <div class="activity-item__meta">
+                          @if (activity.adresse) {
+                            <span class="activity-meta-item">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                              </svg>
+                              {{ activity.adresse }}
+                            </span>
+                          }
+                          @if (activity.duree) {
+                            <span class="activity-meta-item">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                              </svg>
+                              {{ activity.duree }} min
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <!-- ─── GALERIE ─── -->
+    @if (activeTab() === 'galerie') {
+      <section class="tab-panel" aria-labelledby="tab-galerie">
+        <div class="tab-panel__header">
+          <h2 id="tab-galerie" class="tab-panel__title">
+            Galerie
+            @if (media().length > 0) {
+              <span class="badge badge--neutral">{{ media().length }}</span>
+            }
+          </h2>
+          @if (auth.isAdmin()) {
+            <button type="button" class="btn btn--secondary btn--sm media-upload-btn" [class.media-upload-btn--loading]="uploadSaving()" (click)="fileInput.click()" [disabled]="uploadSaving()">
+              @if (uploadSaving()) {
+                <span class="spinner" aria-hidden="true"></span> Téléversement…
+              } @else {
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                Ajouter un fichier
+              }
+            </button>
+            <input #fileInput type="file" class="sr-only" accept="image/*,video/*" (change)="onFileSelected($event)" />
+          }
+        </div>
+
+        @if (mediaLoading()) {
+          <div class="media-grid">
+            @for (i of [1,2,3,4,5,6]; track i) {
+              <div class="media-item media-item--skeleton"></div>
+            }
+          </div>
+        } @else if (media().length === 0) {
+          <div class="empty-state">
+            <div class="empty-state__icon">📷</div>
+            <p class="empty-state__title">Aucun média pour le moment</p>
+            @if (auth.isAdmin()) {
+              <p class="empty-state__sub">Ajoutez des photos ou vidéos via le bouton ci-dessus.</p>
+            }
+          </div>
+        } @else {
+          <div class="media-grid">
+            @for (item of media(); track item.id; let i = $index) {
+              <div class="media-item animate-scale-in" [style.animation-delay]="i * 50 + 'ms'" [class.media-item--video]="item.fileType === 'VIDEO'">
+                @if (item.fileType === 'IMAGE') {
+                  <img [src]="item.url" [alt]="item.originalName" class="media-item__img" loading="lazy" />
+                } @else {
+                  <video class="media-item__img" [src]="item.url" muted loop playsinline
+                    (mouseenter)="$any($event.target).play()"
+                    (mouseleave)="$any($event.target).pause()">
+                  </video>
+                  <div class="media-item__video-badge">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                  </div>
+                }
+                @if (auth.isAdmin()) {
+                  <button
+                    class="media-item__delete"
+                    (click)="deleteMedia(item.id)"
+                    [disabled]="deletingMedia() === item.id"
+                    [attr.aria-label]="'Supprimer ' + item.originalName"
+                  >
+                    @if (deletingMedia() === item.id) {
+                      <span class="spinner spinner--sm" aria-hidden="true"></span>
+                    } @else {
+                      ×
+                    }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <!-- ─── COMMENTAIRES ─── -->
+    @if (activeTab() === 'commentaires') {
+      <section class="tab-panel" aria-labelledby="tab-commentaires">
+        <div class="tab-panel__header">
+          <h2 id="tab-commentaires" class="tab-panel__title">
+            Commentaires
+            @if (comments().length > 0) {
+              <span class="badge badge--neutral">{{ comments().length }}</span>
+            }
+          </h2>
+        </div>
+
+        <!-- Comment form -->
+        <div class="comment-form-card card">
+          <div class="card__body">
+            <p class="comment-form-card__label">Votre avis</p>
+
+            <!-- Star rating -->
+            <div class="star-rating" role="group" aria-label="Note sur 5">
+              @for (star of starsArray; track star) {
+                <button
+                  type="button"
+                  class="star-rating__btn"
+                  [class.star-rating__btn--active]="star <= selectedRating()"
+                  (click)="setRating(star)"
+                  [attr.aria-label]="star + ' étoile' + (star > 1 ? 's' : '')"
+                >★</button>
+              }
+              <span class="star-rating__label">{{ selectedRating() }}/5</span>
+            </div>
+
+            @if (commentSuccess()) {
+              <div class="alert alert--success" role="status">Commentaire publié !</div>
+            }
+            @if (commentError()) {
+              <div class="alert alert--error" role="alert">{{ commentError() }}</div>
+            }
+
+            <form [formGroup]="commentForm" (ngSubmit)="submitComment()" class="comment-form">
+              <textarea
+                class="form-textarea"
+                formControlName="content"
+                rows="3"
+                placeholder="Partagez votre expérience…"
+              ></textarea>
+              <div class="comment-form__actions">
+                <button type="submit" class="btn btn--primary" [disabled]="commentSaving()">
+                  @if (commentSaving()) { <span class="spinner" aria-hidden="true"></span> }
+                  Publier
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Comments list -->
+        @if (commentsLoading()) {
+          <div class="comments-list">
+            @for (i of [1,2,3]; track i) {
+              <div class="comment-item comment-item--skeleton">
+                <div class="skeleton-avatar"></div>
+                <div class="comment-item__body">
+                  <div class="skeleton-line skeleton-line--sm"></div>
+                  <div class="skeleton-line skeleton-line--lg" style="margin-top:.5rem"></div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else if (comments().length === 0) {
+          <div class="empty-state empty-state--sm">
+            <p class="empty-state__title">Aucun commentaire pour l'instant</p>
+            <p class="empty-state__sub">Soyez le premier à partager votre avis !</p>
+          </div>
+        } @else {
+          <div class="comments-list">
+            @for (comment of comments(); track comment.id) {
+              <article class="comment-item">
+                <div class="comment-item__avatar" aria-hidden="true">
+                  {{ comment.authorEmail[0].toUpperCase() }}
+                </div>
+                <div class="comment-item__body">
+                  <div class="comment-item__header">
+                    <span class="comment-item__author">{{ comment.authorEmail }}</span>
+                    <div class="comment-item__stars" aria-label="{{ comment.rating }} étoiles sur 5">
+                      @for (star of starsArray; track star) {
+                        <span [class.star--active]="star <= comment.rating" class="star">★</span>
+                      }
+                    </div>
+                    <span class="comment-item__date">{{ comment.createdAt | date:'d MMM yyyy' }}</span>
+                    @if (canDeleteComment(comment)) {
+                      <button
+                        class="comment-item__delete btn btn--ghost btn--sm"
+                        (click)="deleteComment(comment.id)"
+                        [disabled]="deletingComment() === comment.id"
+                        aria-label="Supprimer le commentaire"
+                      >
+                        @if (deletingComment() === comment.id) {
+                          <span class="spinner spinner--sm" aria-hidden="true"></span>
+                        } @else { × }
+                      </button>
+                    }
+                  </div>
+                  <p class="comment-item__content">{{ comment.content }}</p>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    <!-- ═══════════════════════════════════════════════════
+         ADMIN — ASSIGNED USERS (always visible below tabs)
+    ═══════════════════════════════════════════════════ -->
+    @if (auth.isAdmin()) {
+      <section class="detail__section users-section" aria-labelledby="users-heading">
+        <div class="tab-panel__header">
+          <h2 id="users-heading" class="tab-panel__title">
+            Utilisateurs assignés
+            <span class="badge badge--neutral">{{ guide()!.users?.length ?? 0 }}</span>
+          </h2>
+        </div>
+
+        @if (guide()!.users?.length) {
+          <div class="users-list">
+            @for (user of guide()!.users!; track user.id) {
+              <div class="user-item">
+                <div class="user-item__avatar" aria-hidden="true">{{ user.email[0].toUpperCase() }}</div>
+                <div class="user-item__info">
+                  <span class="user-item__email">{{ user.email }}</span>
+                  <span class="badge badge--neutral">{{ user.role }}</span>
+                </div>
+                <button class="btn btn--ghost btn--sm" (click)="removeUser(user.id)" [attr.aria-label]="'Retirer ' + user.email">
+                  Retirer
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        @if (unassignedUsers().length) {
+          <div class="assign-section">
+            <p class="assign-section__label">Assigner un utilisateur :</p>
+            <div class="assign-list">
+              @for (user of unassignedUsers(); track user.id) {
+                <button class="assign-btn" (click)="addUser(user.id)" [attr.aria-label]="'Assigner ' + user.email">
+                  <div class="user-item__avatar user-item__avatar--sm" aria-hidden="true">{{ user.email[0].toUpperCase() }}</div>
+                  {{ user.email }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+  </div><!-- end detail-body -->
+  </div>
+
+  <div class="split-layout__map">
+    <iframe [src]="mapUrl()" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+  </div>
+</div>
+}
