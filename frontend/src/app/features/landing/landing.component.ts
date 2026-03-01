@@ -59,7 +59,7 @@ export class LandingComponent implements OnInit {
   }
 
   readonly saisonGradients: Record<string, string> = {
-    ETE:       'linear-gradient(135deg, #e8501e 0%, #ff8c42 100%)',
+    ETE:       'linear-gradient(135deg, #E85A1E 0%, #ff8c42 100%)',
     HIVER:     'linear-gradient(135deg, #3b82f6 0%, #1e40af 100%)',
     PRINTEMPS: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     AUTOMNE:   'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',

@@ -8,7 +8,7 @@ export const routes: Routes = [
     path: '',
     canActivate: [publicGuard],
     loadComponent: () =>
-      import('./features/landing/landing.component').then(m => m.LandingComponent),
+      import('./features/landing-page/landing-page.component').then(m => m.LandingPageComponent),
   },
 
   {
